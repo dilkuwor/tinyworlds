@@ -53,5 +53,15 @@ const TINY_WORLDS = [
     cta: 'Step into the night',
     accent: '232, 245, 154',
     preview: 'meadow'
+  },
+  {
+    slug: 'train',
+    title: 'Night Train',
+    icon: '🚆',
+    lede: 'A window seat after dark. Hills and village lights drift, telegraph poles flash past, a tunnel swallows the view and a station glides by. The one you leave running.',
+    actions: ['Just watch', 'Change the route', 'Sound the horn'],
+    cta: 'Take a seat',
+    accent: '242, 196, 138',
+    preview: 'train'
   }
 ];

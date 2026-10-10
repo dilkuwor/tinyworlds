@@ -1,0 +1,19 @@
+/* Night Train: warm cabin-lamp accent on the shared glass UI */
+:root {
+  --primary-color: #f2c48a;
+  --primary-glow: rgba(242, 196, 138, 0.4);
+  --accent-rgb: 242, 196, 138;
+  --accent2-rgb: 200, 140, 90;
+  --bg-glass: rgba(30, 24, 20, 0.62);
+  --bg-glass-soft: rgba(30, 24, 20, 0.36);
+  --text-main: #f7efe4;
+  --text-muted: #d8c6b2;
+}
+
+html, body {
+  background-color: #1d1814;
+}
+
+#world {
+  cursor: default;
+}

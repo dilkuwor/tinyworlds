@@ -542,7 +542,25 @@ function meadowPreview(canvas) {
   return { layout, frame };
 }
 
-const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview, feeder: feederPreview, meadow: meadowPreview };
+/** The real train window; it just keeps rolling. */
+function trainPreview(canvas) {
+  const train = new TrainWorld(canvas, { preview: true });
+  train.reflection = true;
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, train.ctx);
+    train.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    train.update(dt);
+    train.draw();
+  };
+
+  return { layout, frame };
+}
+
+const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview, feeder: feederPreview, meadow: meadowPreview, train: trainPreview };
 
 // ==========================================
 // WORLD SECTIONS

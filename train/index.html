@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Night Train · Tiny Worlds</title>
+  <meta name="theme-color" content="#1d1814">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚆</text></svg>">
+  <link rel="stylesheet" href="/shared/ui.css">
+  <link rel="stylesheet" href="/train/train.css">
+</head>
+<body>
+  <div id="world">
+    <canvas id="train-canvas"></canvas>
+
+    <!-- Top Navigation & Status -->
+    <header class="top-nav ui-chrome">
+      <a class="brand glass-panel" href="/" title="Back to Tiny Worlds">
+        <span class="brand-home" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </span>
+        <span class="brand-icon">🚆</span>
+        <span class="brand-title">Night Train</span>
+      </a>
+
+      <div class="stats-bar glass-panel">
+        <div class="stat-item" title="Speed">
+          <span class="stat-icon">🚆</span>
+          <span id="stat-speed" class="stat-value">110 km/h</span>
+        </div>
+        <div class="stat-item" title="Route">
+          <span class="stat-icon">🗺️</span>
+          <span id="stat-route" class="stat-value">Countryside</span>
+        </div>
+        <div class="stat-item" title="Station passing">
+          <span class="stat-icon">🚉</span>
+          <span id="stat-next" class="stat-value">—</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Interaction Hint (fades out after a few seconds) -->
+    <div id="hint-banner" class="hint-banner glass-panel">
+      <span class="hint-long">Sit back and watch • Click for the horn • <kbd>←</kbd> <kbd>→</kbd> Speed • <kbd>R</kbd> Route • <kbd>L</kbd> Reflection • <kbd>M</kbd> Sound</span>
+      <span class="hint-short">Sit back and watch • Tap for the horn</span>
+    </div>
+
+    <!-- Bottom Controls Toolbar -->
+    <div id="toolbar-container" class="toolbar-container ui-chrome">
+      <div class="toolbar glass-panel">
+        <button id="btn-speed" class="btn btn-primary" title="Slow / Cruise / Fast (← →)">
+          <span class="btn-icon">⏱️</span>
+          <span id="speed-label" class="btn-label">Cruise</span>
+        </button>
+
+        <button id="btn-route" class="btn" title="Countryside / Coast / Snow / City (R)">
+          <span id="route-icon" class="btn-icon">🌾</span>
+          <span id="route-label" class="btn-label">Countryside</span>
+        </button>
+
+        <button id="btn-reflection" class="btn" title="Your reflection in the glass (L)">
+          <span class="btn-icon">🪟</span>
+          <span id="reflection-label" class="btn-label">Reflection</span>
+        </button>
+
+        <button id="btn-sound" class="btn" title="Toggle the sound of the train (M)">
+          <span id="sound-icon" class="btn-icon">🔇</span>
+          <span id="sound-label" class="btn-label">Off</span>
+        </button>
+
+        <button id="btn-help" class="btn" title="Guide and keyboard shortcuts (?)">
+          <span class="btn-icon">ℹ️</span>
+          <span class="btn-label">Guide</span>
+        </button>
+
+        <div class="separator"></div>
+
+        <button id="btn-collapse" class="btn btn-ghost" title="Hide toolbar (T)" aria-label="Hide toolbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Small handle shown while the toolbar is collapsed -->
+    <button id="toolbar-handle" class="toolbar-handle glass-panel" title="Show toolbar (T)" aria-label="Show toolbar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+    </button>
+
+    <!-- Guide Modal -->
+    <div id="help-modal" class="modal-overlay">
+      <div class="modal glass-panel">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span>🚆</span> Night Train
+          </div>
+          <button id="btn-close-help" class="btn-close" title="Close guide">&times;</button>
+        </div>
+        <div class="modal-content">
+          <p>
+            A window seat on a night train. The world slides past in layers: far hills and town lights
+            barely move, farmhouses glide, hedges hurry and telegraph poles flash by. Now and then a tunnel
+            swallows the view and you catch your own carriage reflected in the glass, a station drifts past,
+            or another train rushes by. This is the one you leave running.
+          </p>
+
+          <div>
+            <strong>Routes</strong>
+            <div class="species-grid">
+              <div class="species-card"><strong>Countryside</strong>Fields, lit farmhouses and distant villages.</div>
+              <div class="species-card"><strong>Coast</strong>The sea under the moon and a lighthouse turning.</div>
+              <div class="species-card"><strong>Snow</strong>Firs, moonlit drifts and snow streaking past.</div>
+              <div class="species-card"><strong>City</strong>A skyline of windows and streetlights.</div>
+            </div>
+          </div>
+
+          <div>
+            <strong>Keyboard Shortcuts</strong>
+            <table class="shortcuts-table">
+              <tbody>
+                <tr><td>Click / <kbd>Space</kbd></td><td>Sound the horn</td></tr>
+                <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Slower / faster</td></tr>
+                <tr><td><kbd>R</kbd></td><td>Countryside / Coast / Snow / City</td></tr>
+                <tr><td><kbd>L</kbd></td><td>Reflection in the glass on / off</td></tr>
+                <tr><td><kbd>M</kbd></td><td>Toggle sound</td></tr>
+                <tr><td><kbd>T</kbd></td><td>Show / hide the toolbar</td></tr>
+                <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+                <tr><td><kbd>?</kbd> / <kbd>H</kbd></td><td>Open / close this guide</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/shared/canvas.js"></script>
+  <script src="/shared/audio.js"></script>
+  <script src="/shared/shell.js"></script>
+  <script src="/train/sounds.js"></script>
+  <script src="/train/train.js"></script>
+  <script src="/train/scene.js"></script>
+</body>
+</html>
