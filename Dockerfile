@@ -5,6 +5,11 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY . /usr/share/nginx/html/
 RUN rm -f /usr/share/nginx/html/nginx.conf
 
+# Stamp every local script/stylesheet URL with a per-build version so caches
+# (browsers and Cloudflare) never pair new pages with old scripts after a deploy
+RUN V=$(date +%s) && find /usr/share/nginx/html -name '*.html' -exec \
+    sed -i -E "s#(src|href)=\"(/[^\"?]+\.(js|css))\"#\1=\"\2?v=$V\"#g" {} +
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
