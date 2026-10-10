@@ -560,7 +560,40 @@ function trainPreview(canvas) {
   return { layout, frame };
 }
 
-const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview, feeder: feederPreview, meadow: meadowPreview, train: trainPreview };
+/** The real greenhouse potting bench; moving the pointer over a plant gently waters it and sways the leaves. */
+function greenhousePreview(canvas) {
+  // Shows your own greenhouse (read-only); hover the can over a pot to pour
+  const gh = new GreenhouseWorld(canvas, { preview: true });
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, gh.ctx);
+    gh.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    if (pointer) {
+      gh.setPointer(pointer.x, pointer.y, true);
+      gh.setPouring(!!gh.plantBelow(pointer.x, pointer.y));
+    } else {
+      gh.setPointer(-999, -999, false);
+      gh.setPouring(false);
+    }
+    gh.update(dt);
+    gh.draw();
+  };
+
+  return { layout, frame };
+}
+
+const PREVIEWS = {
+  aquarium: aquariumPreview,
+  cat: catPreview,
+  rain: rainPreview,
+  feeder: feederPreview,
+  meadow: meadowPreview,
+  train: trainPreview,
+  greenhouse: greenhousePreview
+};
 
 // ==========================================
 // WORLD SECTIONS
@@ -613,15 +646,26 @@ function buildWorlds() {
 
     const make = PREVIEWS[world.preview];
     if (make) {
-      entry.preview = make(canvas);
-      previews.push(entry);
+      // One broken world must never blank the whole page
+      try {
+        entry.preview = make(canvas);
+        entry.name = world.slug;
+        previews.push(entry);
+      } catch (e) {
+        console.warn(`Preview for "${world.slug}" unavailable:`, e);
+      }
     }
   });
   return previews;
 }
 
 function runPreviews(previews) {
-  const layoutAll = () => previews.forEach(p => p.preview.layout());
+  // Run a preview step; if it throws, retire that preview and keep the rest alive
+  const safely = (p, fn) => {
+    if (p.broken) return;
+    try { fn(); } catch (e) { p.broken = true; console.warn(`Preview for "${p.name}" stopped:`, e); }
+  };
+  const layoutAll = () => previews.forEach(p => safely(p, () => p.preview.layout()));
   layoutAll();
   window.addEventListener('resize', layoutAll);
 
@@ -632,10 +676,10 @@ function runPreviews(previews) {
   previews.forEach(p => io.observe(p.canvas));
 
   // Always paint one frame so a window is never empty
-  previews.forEach(p => p.preview.frame(null, 0.016));
+  previews.forEach(p => safely(p, () => p.preview.frame(null, 0.016)));
   if (reduceMotion) return;
   startLoop((dt) => {
-    previews.forEach(p => { if (p.visible) p.preview.frame(p.pointer, dt); });
+    previews.forEach(p => { if (p.visible) safely(p, () => p.preview.frame(p.pointer, dt)); });
   });
 }
 

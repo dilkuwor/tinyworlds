@@ -63,5 +63,15 @@ const TINY_WORLDS = [
     cta: 'Take a seat',
     accent: '242, 196, 138',
     preview: 'train'
+  },
+  {
+    slug: 'greenhouse',
+    title: 'The Greenhouse',
+    icon: '🪴',
+    lede: 'Seven plants under painted glass, living on real time. Aim the can and watch a droopy plant slowly lift. They only grow while their soil is moist, so come back tomorrow to see what unfurled.',
+    actions: ['Aim the watering can', 'Mist the leaves', 'Come back tomorrow'],
+    cta: 'Step inside',
+    accent: '114, 195, 102',
+    preview: 'greenhouse'
   }
 ];

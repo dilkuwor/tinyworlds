@@ -8,6 +8,11 @@ creature, room and sound is drawn or synthesised in code.
 | --- | --- | --- |
 | Aquarium | `/aquarium/` | Feed the fish, add creatures, cycle day / twilight / night / deep, adjust the bubbler |
 | Ragdoll Cat | `/cat/` | Pet it (it purrs), toss treats, play with yarn or a laser, watch it nap in its bed |
+| Rain on the Glass | `/rain/` | Wipe the window fog, change rain intensity, trigger thunder, watch drops race |
+| The Feeder | `/feeder/` | Scatter seed, watch sparrows, finches, chickadees, cardinals, and jays arrive |
+| Night Meadow | `/meadow/` | Hold still to gather fireflies, call them with a lantern, wait for synchrony |
+| Night Train | `/train/` | Watch countryside, coast, snow, and city roll by, sound the horn, toggle reflection |
+| The Greenhouse | `/greenhouse/` | Aim the watering can and watch thirsty plants lift; mist the leaves; plants grow only while moist, across real days, and tell you what grew while you were away |
 
 ## Running locally
 
