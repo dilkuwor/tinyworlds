@@ -66,14 +66,16 @@ class CatScene {
 
   layout() {
     const { width: w, height: h } = this.stage;
-    const s = clampN(Math.min(h / 690, w / 640), 0.55, 1.5);
+    // Portrait phones: size the cat from the width so it stays the star of the room
+    const s = h > w ? clampN(w / 500, 0.55, 1.1) : clampN(Math.min(h / 690, w / 640), 0.55, 1.5);
     this.s = s;
     this.floorY = h - Math.max(110, h * 0.19);
     this.room.layout(w, h, this.floorY, s);
     this.cat.s = s;
     this.cat.floorY = this.floorY;
-    this.minX = 120 * s;
-    this.maxX = w - 120 * s;
+    // Stay clear of the plant, but always be able to reach the bed
+    this.minX = Math.max(120 * s, this.room.plant.x + 75 * s);
+    this.maxX = Math.max(w - 120 * s, this.room.bed.x);
     this.cat.x = clampN(this.cat.x, this.minX, this.maxX);
     this.treats.forEach(t => { t.s = s; t.landed = false; });
     if (this.yarn) { this.yarn.s = s; this.yarn.r = 20 * s; }

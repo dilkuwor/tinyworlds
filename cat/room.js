@@ -56,9 +56,11 @@ class Room {
     const wh = Math.max(120, Math.min((this.horizonY - top) * 0.62, 330));
     this.win = { x: w * 0.34 - ww / 2, y: top, w: ww, h: wh };
     this.painting = { x: w * 0.6, y: top + wh * 0.12, w: Math.max(80, Math.min(w * 0.1, 150)), h: Math.max(60, Math.min(w * 0.075, 110)) };
-    this.plant = { x: Math.max(70 * s, w * 0.08), y: this.horizonY + 26 * s };
+    const narrow = w < 640;
+    this.plant = { x: narrow ? 48 * s : Math.max(70 * s, w * 0.08), y: this.horizonY + 26 * s };
     this.lamp = { x: Math.min(w - 60 * s, w * 0.93), y: this.horizonY + 20 * s, top: Math.max(top + 30, this.horizonY - 330 * s) };
-    this.bed = { x: Math.min(w * 0.78, w - 200 * s), y: floorY, rx: 120 * s, ry: 30 * s };
+    const bedRx = (narrow ? 88 : 120) * s;
+    this.bed = { x: narrow ? w - bedRx - 24 * s : Math.min(w * 0.78, w - 200 * s), y: floorY, rx: bedRx, ry: (narrow ? 24 : 30) * s };
     this.rug = { x: w * 0.47, y: floorY + 8 * s, rx: Math.min(w * 0.34, 520 * s), ry: 26 * s };
   }
 

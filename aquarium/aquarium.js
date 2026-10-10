@@ -101,12 +101,14 @@ class Aquarium {
 
   initFlora() {
     this.plants = [];
-    const count = Math.max(8, Math.floor(this.width / 95));
+    const count = Math.max(5, Math.floor(this.width / 95));
     const step = this.width / (count + 1);
+    // Keep kelp in proportion on short (phone) tanks
+    const heightScale = clamp(this.height / 850, 0.5, 1);
 
     for (let i = 0; i < count; i++) {
       const px = step * (i + 0.5) + (Math.random() - 0.5) * 35;
-      const h = 140 + Math.random() * 150;
+      const h = (140 + Math.random() * 150) * heightScale;
       const type = (i % 4 === 1) ? 'coral' : 'green';
       this.plants.push(new Plant(px, this.seabedY + 10, h, 8 + Math.floor(Math.random() * 4), type));
     }
