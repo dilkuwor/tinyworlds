@@ -459,7 +459,32 @@ function catPreview(canvas) {
   return { layout, frame };
 }
 
-const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview };
+/** The real rainy window; moving the pointer over it wipes the fog. */
+function rainPreview(canvas) {
+  const world = new RainWorld(canvas, { preview: true });
+  world.setMood(new Date().getHours() >= 7 && new Date().getHours() < 17 ? 'dusk' : 'night');
+  let last = null;
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, world.ctx);
+    world.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    if (pointer) {
+      if (last) world.wipe(last.x, last.y, pointer.x, pointer.y, 22);
+      last = { ...pointer };
+    } else {
+      last = null;
+    }
+    world.update(dt);
+    world.draw();
+  };
+
+  return { layout, frame };
+}
+
+const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview };
 
 // ==========================================
 // WORLD SECTIONS

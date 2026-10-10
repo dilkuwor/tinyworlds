@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Rain on the Glass · Tiny Worlds</title>
+  <meta name="theme-color" content="#1b2338">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌧️</text></svg>">
+  <link rel="stylesheet" href="/shared/ui.css">
+  <link rel="stylesheet" href="/rain/rain.css">
+</head>
+<body>
+  <div id="world">
+    <canvas id="rain-canvas"></canvas>
+
+    <!-- Top Navigation & Status -->
+    <header class="top-nav ui-chrome">
+      <a class="brand glass-panel" href="/" title="Back to Tiny Worlds">
+        <span class="brand-home" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </span>
+        <span class="brand-icon">🌧️</span>
+        <span class="brand-title">Rain on the Glass</span>
+      </a>
+
+      <div class="stats-bar glass-panel">
+        <div class="stat-item" title="Rain">
+          <span class="stat-icon">💧</span>
+          <span id="stat-rain" class="stat-value">Steady</span>
+        </div>
+        <div class="stat-item" title="Local time">
+          <span class="stat-icon">🕰️</span>
+          <span id="stat-time" class="stat-value">--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Interaction Hint (fades out after a few seconds) -->
+    <div id="hint-banner" class="hint-banner glass-panel">
+      <span class="hint-long">Drag to wipe the fog • Click to add a drop • <kbd>W</kbd> Wipe all • <kbd>R</kbd> Rain • <kbd>D</kbd> Time • <kbd>M</kbd> Sound</span>
+      <span class="hint-short">Drag to wipe the fog • Tap to add a drop</span>
+    </div>
+
+    <!-- Bottom Controls Toolbar -->
+    <div id="toolbar-container" class="toolbar-container ui-chrome">
+      <div class="toolbar glass-panel">
+        <button id="btn-wipe" class="btn btn-primary" title="Squeegee the whole window (W)">
+          <span class="btn-icon">🧽</span>
+          <span class="btn-label">Wipe</span>
+        </button>
+
+        <button id="btn-level" class="btn" title="Light / Steady / Heavy rain (R)">
+          <span id="level-icon" class="btn-icon">🌧️</span>
+          <span id="level-label" class="btn-label">Steady</span>
+        </button>
+
+        <button id="btn-mood" class="btn" title="Grey day / Dusk / Night / Storm (D)">
+          <span id="mood-icon" class="btn-icon">🌙</span>
+          <span id="mood-label" class="btn-label">Night</span>
+        </button>
+
+        <button id="btn-sound" class="btn" title="Toggle the sound of the rain (M)">
+          <span id="sound-icon" class="btn-icon">🔇</span>
+          <span id="sound-label" class="btn-label">Off</span>
+        </button>
+
+        <button id="btn-help" class="btn" title="Guide and keyboard shortcuts (?)">
+          <span class="btn-icon">ℹ️</span>
+          <span class="btn-label">Guide</span>
+        </button>
+
+        <div class="separator"></div>
+
+        <button id="btn-collapse" class="btn btn-ghost" title="Hide toolbar (T)" aria-label="Hide toolbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Small handle shown while the toolbar is collapsed -->
+    <button id="toolbar-handle" class="toolbar-handle glass-panel" title="Show toolbar (T)" aria-label="Show toolbar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+    </button>
+
+    <!-- Guide Modal -->
+    <div id="help-modal" class="modal-overlay">
+      <div class="modal glass-panel">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span>🌧️</span> Rain on the Glass
+          </div>
+          <button id="btn-close-help" class="btn-close" title="Close guide">&times;</button>
+        </div>
+        <div class="modal-content">
+          <p>
+            A rainy window looking out over a soft-focus city. Drops gather, stall, slide and merge,
+            leaving clear trails through the mist. Wipe a space to look out; the glass slowly fogs over again.
+          </p>
+
+          <div>
+            <strong>Things to try</strong>
+            <div class="species-grid">
+              <div class="species-card">
+                <strong>Wipe</strong>
+                Drag across the glass to clear the fog and smear the drops away.
+              </div>
+              <div class="species-card">
+                <strong>Add a drop</strong>
+                Click or tap the glass. A fat drop forms and slides down.
+              </div>
+              <div class="species-card">
+                <strong>Squeegee</strong>
+                Wipe the whole window clean in one sweep.
+              </div>
+              <div class="species-card">
+                <strong>Storm</strong>
+                Switch the time to Storm for heavy rain, lightning and distant thunder.
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <strong>Keyboard Shortcuts</strong>
+            <table class="shortcuts-table">
+              <tbody>
+                <tr><td>Drag</td><td>Wipe the fog</td></tr>
+                <tr><td>Click / Tap</td><td>Add a drop</td></tr>
+                <tr><td><kbd>W</kbd> / <kbd>Space</kbd></td><td>Squeegee the whole window</td></tr>
+                <tr><td><kbd>R</kbd></td><td>Light / Steady / Heavy rain</td></tr>
+                <tr><td><kbd>D</kbd></td><td>Grey day / Dusk / Night / Storm</td></tr>
+                <tr><td><kbd>M</kbd></td><td>Toggle sound</td></tr>
+                <tr><td><kbd>T</kbd></td><td>Show / hide the toolbar</td></tr>
+                <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+                <tr><td><kbd>?</kbd> / <kbd>H</kbd></td><td>Open / close this guide</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/shared/canvas.js"></script>
+  <script src="/shared/audio.js"></script>
+  <script src="/shared/shell.js"></script>
+  <script src="/rain/sounds.js"></script>
+  <script src="/rain/rain.js"></script>
+  <script src="/rain/scene.js"></script>
+</body>
+</html>

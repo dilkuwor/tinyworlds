@@ -23,5 +23,15 @@ const TINY_WORLDS = [
     cta: 'Say hello',
     accent: '255, 178, 122',
     preview: 'cat'
+  },
+  {
+    slug: 'rain',
+    title: 'Rain on the Glass',
+    icon: '🌧️',
+    lede: 'A misty window over a soft-focus city. Drops gather, stall and slide in little rivers. Wipe a space to look out, and watch the glass fog over again.',
+    actions: ['Wipe the fog', 'Change the rain', 'Wait for thunder'],
+    cta: 'Look outside',
+    accent: '169, 196, 224',
+    preview: 'rain'
   }
 ];

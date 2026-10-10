@@ -1,0 +1,23 @@
+/* Rain on the Glass: cool slate accent on the shared glass UI */
+:root {
+  --primary-color: #a9c4e0;
+  --primary-glow: rgba(169, 196, 224, 0.4);
+  --accent-rgb: 169, 196, 224;
+  --accent2-rgb: 110, 140, 180;
+  --bg-glass: rgba(18, 24, 38, 0.6);
+  --bg-glass-soft: rgba(18, 24, 38, 0.34);
+  --text-main: #eef3fa;
+  --text-muted: #b4c2d4;
+}
+
+html, body {
+  background-color: #10141f;
+}
+
+#world {
+  cursor: grab;
+}
+
+#world:active {
+  cursor: grabbing;
+}

@@ -37,6 +37,7 @@ html, body {
   height: 100vh;
   height: 100dvh; /* visible viewport on mobile, so the toolbar never hides under browser bars */
   overflow: hidden;
+  overflow: clip; /* never scroll, even when focus lands on the tucked-away toolbar handle */
   cursor: crosshair;
   touch-action: none; /* drags pet / feed instead of scrolling or zooming the page */
   -webkit-tap-highlight-color: transparent;
