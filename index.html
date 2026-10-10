@@ -7,9 +7,26 @@
   <meta name="description" content="A collection of calm, interactive living scenes: an aquarium, a Ragdoll cat, and more tiny worlds to come.">
   <meta name="theme-color" content="#0b0a24">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>">
+  <script>
+    // Apply the saved (or system) theme before first paint to avoid a flash
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('tinyworlds.homeTheme'); } catch (e) {}
+      if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
   <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
+  <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to day theme" title="Day theme">
+    <span class="toggle-track" aria-hidden="true">
+      <svg class="toggle-icon icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>
+      <svg class="toggle-icon icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+      <span class="toggle-knob"></span>
+    </span>
+  </button>
+
   <!-- Hero: a living night landscape -->
   <header class="hero" id="top">
     <canvas id="hero-sky" aria-hidden="true"></canvas>

@@ -8,18 +8,79 @@
 const reduceMotion = prefersReducedMotion();
 
 // ==========================================
-// HERO: NIGHT LANDSCAPE
+// THEME (day / night)
 // ==========================================
+const Theme = {
+  key: 'tinyworlds.homeTheme',
+  get current() {
+    return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  },
+  set(theme, persist = true) {
+    document.documentElement.dataset.theme = theme;
+    if (persist) { try { localStorage.setItem(this.key, theme); } catch (_) {} }
+    const btn = document.getElementById('theme-toggle');
+    if (btn) {
+      const light = theme === 'light';
+      btn.setAttribute('aria-pressed', String(light));
+      btn.setAttribute('aria-label', light ? 'Switch to night theme' : 'Switch to day theme');
+      btn.title = light ? 'Night theme' : 'Day theme';
+    }
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f6f0e6' : '#0b0a24');
+  },
+  init() {
+    this.set(this.current, false);
+    document.getElementById('theme-toggle')?.addEventListener('click', () =>
+      this.set(this.current === 'light' ? 'dark' : 'light'));
+  }
+};
+
+// ==========================================
+// HERO: LIVING LANDSCAPE (night ↔ day)
+// ==========================================
+const HERO_PALETTES = {
+  dark: {
+    sky: ['#070823', '#17154a', '#3a2b66', '#7a4a72'],
+    glow: [243, 160, 140, 0.22],
+    halo: [255, 228, 200, 0.32],
+    disc: ['#fffaf0', '#f1dcc0'],
+    hills: ['#2c2459', '#1d1946', '#0b0a24'],
+    page: '#0b0a24'
+  },
+  light: {
+    sky: ['#8ec5ef', '#bfe0f6', '#f2e7d8', '#f8d9c3'],
+    glow: [255, 214, 170, 0.35],
+    halo: [255, 222, 150, 0.5],
+    disc: ['#fffbe8', '#ffd98a'],
+    hills: ['#b7cbdd', '#a3c49b', '#7ea67b'],
+    page: '#f6f0e6'
+  }
+};
+
+const hexRgb = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const mixHex = (a, b, u) => {
+  const A = hexRgb(a), B = hexRgb(b);
+  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * u)).join(', ')})`;
+};
+const mixRgba = (a, b, u, alphaScale = 1) => {
+  const c = a.map((v, i) => v + (b[i] - v) * u);
+  return `rgba(${Math.round(c[0])}, ${Math.round(c[1])}, ${Math.round(c[2])}, ${(c[3] * alphaScale).toFixed(3)})`;
+};
+
 function startHero() {
   const canvas = document.getElementById('hero-sky');
   const hero = document.querySelector('.hero');
   const content = document.querySelector('.hero-content');
   const ctx = canvas.getContext('2d');
-  let w = 0, h = 0, dpr = 1, stars = [], flies = [], t = 0;
+  let w = 0, h = 0, stars = [], flies = [], clouds = [], birds = [], t = 0;
+  let day = Theme.current === 'light' ? 1 : 0; // 0 night … 1 day, eased
   const par = { x: 0, y: 0, tx: 0, ty: 0 };
+  const D = HERO_PALETTES.dark, L = HERO_PALETTES.light;
 
   const layout = () => {
-    ({ width: w, height: h, dpr } = fitCanvas(canvas, ctx, hero.clientWidth, hero.clientHeight));
+    ({ width: w, height: h } = fitCanvas(canvas, ctx, hero.clientWidth, hero.clientHeight));
     const count = Math.round(Math.min(260, (w * h) / 5200));
     stars = Array.from({ length: count }, () => {
       const v = Math.pow(Math.random(), 1.6); // denser near the top
@@ -28,91 +89,133 @@ function startHero() {
     flies = Array.from({ length: Math.round(Math.min(34, w / 40)) }, () => ({
       x: Math.random() * w, y: h * (0.62 + Math.random() * 0.36), ph: Math.random() * 10, sp: 0.3 + Math.random() * 0.6, r: 1 + Math.random() * 1.6
     }));
+    clouds = Array.from({ length: Math.max(4, Math.round(w / 260)) }, (_, i) => ({
+      x: Math.random() * w, y: h * (0.08 + Math.random() * 0.42), s: 0.6 + Math.random() * 0.9, sp: 4 + Math.random() * 8
+    }));
+    birds = Array.from({ length: 5 }, (_, i) => ({
+      x: Math.random() * w, y: h * (0.25 + Math.random() * 0.25), sp: 18 + Math.random() * 14, ph: Math.random() * 10, s: 0.7 + Math.random() * 0.5
+    }));
   };
 
   // Rolling hill silhouette: a sum of slow sines
-  const hill = (base, amp, freq, seed, offset) => {
-    ctx.beginPath();
-    ctx.moveTo(0, h);
-    for (let x = 0; x <= w + 10; x += 8) {
-      const u = (x + offset) / w;
-      const y = base + Math.sin(u * freq * 6.283 + seed) * amp + Math.sin(u * freq * 2.7 * 6.283 + seed * 2) * amp * 0.35;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.closePath();
-  };
   const hillY = (x, base, amp, freq, seed, offset) => {
     const u = (x + offset) / w;
     return base + Math.sin(u * freq * 6.283 + seed) * amp + Math.sin(u * freq * 2.7 * 6.283 + seed * 2) * amp * 0.35;
   };
+  const hill = (base, amp, freq, seed, offset) => {
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    for (let x = 0; x <= w + 10; x += 8) ctx.lineTo(x, hillY(x, base, amp, freq, seed, offset));
+    ctx.lineTo(w, h);
+    ctx.closePath();
+  };
+
+  const drawCloud = (x, y, s, alpha) => {
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, 60 * s, 18 * s, 0, 0, 6.283);
+    ctx.ellipse(x - 26 * s, y - 8 * s, 28 * s, 20 * s, 0, 0, 6.283);
+    ctx.ellipse(x + 14 * s, y - 16 * s, 34 * s, 26 * s, 0, 0, 6.283);
+    ctx.ellipse(x + 44 * s, y - 4 * s, 24 * s, 16 * s, 0, 0, 6.283);
+    ctx.fill();
+  };
 
   const draw = () => {
+    const u = day, n = 1 - day;
+
     // Sky
     const sky = ctx.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, '#070823');
-    sky.addColorStop(0.45, '#17154a');
-    sky.addColorStop(0.72, '#3a2b66');
-    sky.addColorStop(0.86, '#7a4a72');
-    sky.addColorStop(1, '#0b0a24');
+    [0, 0.45, 0.72, 0.86].forEach((stop, i) => sky.addColorStop(stop, mixHex(D.sky[i], L.sky[i], u)));
+    sky.addColorStop(1, mixHex(D.page, L.page, u));
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
 
-    // Stars
-    for (const st of stars) {
-      const a = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * st.sp + st.tw));
-      ctx.fillStyle = `rgba(255, 248, 235, ${(a * (1 - st.y / (h * 0.8))).toFixed(3)})`;
-      ctx.beginPath();
-      ctx.arc(st.x + par.x * 4, st.y + par.y * 3, st.r, 0, 6.283);
-      ctx.fill();
+    // Stars fade out by day
+    if (n > 0.01) {
+      for (const st of stars) {
+        const a = (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * st.sp + st.tw))) * (1 - st.y / (h * 0.8)) * n;
+        ctx.fillStyle = `rgba(255, 248, 235, ${a.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(st.x + par.x * 4, st.y + par.y * 3, st.r, 0, 6.283);
+        ctx.fill();
+      }
     }
 
-    // Moon with a soft halo
+    // Moon by night, sun by day: same place, warmer and bigger halo
     const portrait = h > w;
-    const mx = w * (portrait ? 0.8 : 0.78) + par.x * 8, my = h * (portrait ? 0.1 : 0.2) + par.y * 6, mr = Math.max(20, Math.min(w, h) * 0.04);
-    const halo = ctx.createRadialGradient(mx, my, mr * 0.8, mx, my, mr * 7);
-    halo.addColorStop(0, 'rgba(255, 236, 205, 0.32)');
-    halo.addColorStop(0.35, 'rgba(255, 220, 190, 0.08)');
-    halo.addColorStop(1, 'rgba(255, 220, 190, 0)');
+    const mx = w * (portrait ? 0.74 : 0.78) + par.x * 8, my = h * (portrait ? 0.15 : 0.2) + par.y * 6;
+    const mr = Math.max(20, Math.min(w, h) * 0.04) * (1 + u * 0.15);
+    const halo = ctx.createRadialGradient(mx, my, mr * 0.8, mx, my, mr * (7 + u * 4));
+    halo.addColorStop(0, mixRgba(D.halo, L.halo, u));
+    halo.addColorStop(0.35, mixRgba(D.halo, L.halo, u, 0.25));
+    halo.addColorStop(1, mixRgba(D.halo, L.halo, u, 0));
     ctx.fillStyle = halo;
     ctx.fillRect(0, 0, w, h);
     const disc = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, mr * 0.1, mx, my, mr);
-    disc.addColorStop(0, '#fffaf0');
-    disc.addColorStop(1, '#f1dcc0');
+    disc.addColorStop(0, mixHex(D.disc[0], L.disc[0], u));
+    disc.addColorStop(1, mixHex(D.disc[1], L.disc[1], u));
     ctx.fillStyle = disc;
     ctx.beginPath();
     ctx.arc(mx, my, mr, 0, 6.283);
     ctx.fill();
 
+    // Clouds drift by day
+    if (u > 0.01) {
+      clouds.forEach(c => {
+        const cx = ((c.x + t * c.sp) % (w + 300)) - 150 + par.x * 10;
+        drawCloud(cx, c.y + par.y * 5, c.s, 0.85 * u);
+      });
+    }
+
     // Horizon glow
     const glow = ctx.createRadialGradient(w * 0.5, h * 0.78, 10, w * 0.5, h * 0.78, w * 0.7);
-    glow.addColorStop(0, 'rgba(243, 160, 140, 0.22)');
-    glow.addColorStop(1, 'rgba(243, 160, 140, 0)');
+    glow.addColorStop(0, mixRgba(D.glow, L.glow, u));
+    glow.addColorStop(1, mixRgba(D.glow, L.glow, u, 0));
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, w, h);
 
+    // Birds glide across by day
+    if (u > 0.01) {
+      ctx.strokeStyle = `rgba(60, 64, 90, ${(0.55 * u).toFixed(3)})`;
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = 'round';
+      birds.forEach(b => {
+        const bx = ((b.x + t * b.sp) % (w + 100)) - 50;
+        const by = b.y + Math.sin(t * 0.6 + b.ph) * 10;
+        const flap = Math.sin(t * 6 + b.ph) * 4 * b.s;
+        ctx.beginPath();
+        ctx.moveTo(bx - 8 * b.s, by - flap);
+        ctx.quadraticCurveTo(bx - 3 * b.s, by - 3 * b.s, bx, by);
+        ctx.quadraticCurveTo(bx + 3 * b.s, by - 3 * b.s, bx + 8 * b.s, by - flap);
+        ctx.stroke();
+      });
+    }
+
     // Hills, far to near, with gentle parallax
     const layers = [
-      { base: h * 0.7, amp: h * 0.035, freq: 1.3, seed: 1.2, color: '#2c2459', depth: 6 },
-      { base: h * 0.78, amp: h * 0.04, freq: 0.9, seed: 3.4, color: '#1d1946', depth: 14 },
-      { base: h * 0.88, amp: h * 0.03, freq: 1.6, seed: 5.1, color: '#0b0a24', depth: 26 }
+      { base: h * 0.7, amp: h * 0.035, freq: 1.3, seed: 1.2, depth: 6 },
+      { base: h * 0.78, amp: h * 0.04, freq: 0.9, seed: 3.4, depth: 14 },
+      { base: h * 0.88, amp: h * 0.03, freq: 1.6, seed: 5.1, depth: 26 }
     ];
-    layers.forEach((L, i) => {
-      const off = par.x * L.depth;
-      hill(L.base + par.y * L.depth * 0.3, L.amp, L.freq, L.seed, off);
-      ctx.fillStyle = L.color;
+    layers.forEach((Ly, i) => {
+      const color = mixHex(D.hills[i], L.hills[i], u);
+      const off = par.x * Ly.depth;
+      const base = Ly.base + par.y * Ly.depth * 0.3;
+      hill(base, Ly.amp, Ly.freq, Ly.seed, off);
+      ctx.fillStyle = color;
       ctx.fill();
 
       if (i === 1) {
         // A tiny cottage with a warm window on the middle hill
         const cx = w * 0.24;
-        const cy = hillY(cx, L.base + par.y * L.depth * 0.3, L.amp, L.freq, L.seed, off);
+        const cy = hillY(cx, base, Ly.amp, Ly.freq, Ly.seed, off);
         const s = Math.max(0.7, Math.min(1.4, w / 1200));
         ctx.save();
         ctx.translate(cx, cy + 4);
         ctx.scale(s, s);
-        ctx.fillStyle = L.color;
+        ctx.fillStyle = mixHex('#1d1946', '#f4ece0', u);
         ctx.fillRect(-18, -22, 36, 24);
+        ctx.fillStyle = mixHex('#1d1946', '#c4704f', u);
         ctx.beginPath();
         ctx.moveTo(-23, -21);
         ctx.lineTo(0, -40);
@@ -120,21 +223,26 @@ function startHero() {
         ctx.fill();
         ctx.fillRect(8, -40, 6, 12);
         const flicker = 0.85 + Math.sin(t * 3.1) * 0.05 + Math.sin(t * 7.3) * 0.04;
-        const win = ctx.createRadialGradient(-6, -12, 1, -6, -12, 34);
-        win.addColorStop(0, `rgba(255, 200, 120, ${0.45 * flicker})`);
-        win.addColorStop(1, 'rgba(255, 200, 120, 0)');
-        ctx.fillStyle = win;
-        ctx.fillRect(-40, -46, 80, 70);
-        ctx.fillStyle = `rgba(255, 214, 150, ${flicker})`;
+        if (n > 0.01) {
+          const win = ctx.createRadialGradient(-6, -12, 1, -6, -12, 34);
+          win.addColorStop(0, `rgba(255, 200, 120, ${(0.45 * flicker * n).toFixed(3)})`);
+          win.addColorStop(1, 'rgba(255, 200, 120, 0)');
+          ctx.fillStyle = win;
+          ctx.fillRect(-40, -46, 80, 70);
+        }
+        ctx.fillStyle = mixHex('#ffd696', '#7aa6c9', u);
         ctx.fillRect(-10, -16, 8, 7);
+        ctx.fillStyle = mixHex('#1d1946', '#8a5a3c', u);
+        ctx.fillRect(4, -12, 7, 14);
         ctx.restore();
 
         // A few trees on the same ridge
-        [0.38, 0.41, 0.62, 0.66, 0.69].forEach((u, k) => {
-          const tx = w * u;
-          const ty = hillY(tx, L.base + par.y * L.depth * 0.3, L.amp, L.freq, L.seed, off);
+        const treeColor = mixHex('#1d1946', '#5f8f62', u);
+        [0.38, 0.41, 0.62, 0.66, 0.69].forEach((tu, k) => {
+          const tx = w * tu;
+          const ty = hillY(tx, base, Ly.amp, Ly.freq, Ly.seed, off);
           const th = (26 + (k % 3) * 9) * s;
-          ctx.fillStyle = L.color;
+          ctx.fillStyle = treeColor;
           ctx.beginPath();
           ctx.moveTo(tx - th * 0.32, ty + 2);
           ctx.lineTo(tx, ty - th);
@@ -144,20 +252,30 @@ function startHero() {
       }
     });
 
-    // Fireflies drifting over the near hills
-    for (const f of flies) {
-      const a = Math.max(0, Math.sin(t * f.sp * 1.4 + f.ph));
-      if (a < 0.02) continue;
-      const fx = f.x + Math.sin(t * 0.3 * f.sp + f.ph) * 30 + par.x * 30;
-      const fy = f.y + Math.cos(t * 0.25 * f.sp + f.ph * 2) * 18;
-      const g = ctx.createRadialGradient(fx, fy, 0, fx, fy, f.r * 7);
-      g.addColorStop(0, `rgba(255, 226, 140, ${(0.85 * a).toFixed(3)})`);
-      g.addColorStop(1, 'rgba(255, 226, 140, 0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(fx, fy, f.r * 7, 0, 6.283);
-      ctx.fill();
+    // Fireflies by night
+    if (n > 0.01) {
+      for (const f of flies) {
+        const a = Math.max(0, Math.sin(t * f.sp * 1.4 + f.ph)) * n;
+        if (a < 0.02) continue;
+        const fx = f.x + Math.sin(t * 0.3 * f.sp + f.ph) * 30 + par.x * 30;
+        const fy = f.y + Math.cos(t * 0.25 * f.sp + f.ph * 2) * 18;
+        const g = ctx.createRadialGradient(fx, fy, 0, fx, fy, f.r * 7);
+        g.addColorStop(0, `rgba(255, 226, 140, ${(0.85 * a).toFixed(3)})`);
+        g.addColorStop(1, 'rgba(255, 226, 140, 0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(fx, fy, f.r * 7, 0, 6.283);
+        ctx.fill();
+      }
     }
+
+    // Fade the bottom edge into the page colour
+    const fade = ctx.createLinearGradient(0, h * 0.86, 0, h);
+    const page = mixHex(D.page, L.page, u);
+    fade.addColorStop(0, page.replace('rgb', 'rgba').replace(')', ', 0)'));
+    fade.addColorStop(1, page);
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, h * 0.86, w, h * 0.14);
   };
 
   layout();
@@ -169,16 +287,25 @@ function startHero() {
 
   // Hero text drifts up and fades as you scroll into the worlds
   const onScroll = () => {
-    const u = Math.min(1, window.scrollY / (h * 0.7));
-    content.style.opacity = String(1 - u);
-    content.style.transform = `translateY(${-u * 60}px)`;
+    const k = Math.min(1, window.scrollY / (h * 0.7));
+    content.style.opacity = String(1 - k);
+    content.style.transform = `translateY(${-k * 60}px)`;
   };
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  if (reduceMotion) { draw(); return; }
+  if (reduceMotion) {
+    draw();
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      day = Theme.current === 'light' ? 1 : 0;
+      draw();
+    });
+    return;
+  }
   let heroVisible = true;
   new IntersectionObserver(([en]) => { heroVisible = en.isIntersecting; }).observe(hero);
   startLoop((dt) => {
+    const target = Theme.current === 'light' ? 1 : 0;
+    day += (target - day) * Math.min(1, dt * 2.2);
     if (!heroVisible) return;
     t += dt;
     par.x += (par.tx - par.x) * Math.min(1, dt * 2);
@@ -427,6 +554,7 @@ function setupReveal() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  Theme.init();
   startHero();
   runPreviews(buildWorlds());
   setupReveal();
