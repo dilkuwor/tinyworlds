@@ -8,7 +8,9 @@ const TINY_WORLDS = [
     slug: 'aquarium',
     title: 'Aquarium',
     icon: '🐠',
-    description: 'Feed the fish, change the light and watch a little reef breathe.',
+    lede: 'A little reef behind glass. Clownfish weave through the kelp, jellyfish drift in slow pulses, and a turtle passes by now and then.',
+    actions: ['Drop food', 'Shift the light', 'Add a creature'],
+    cta: 'Dive in',
     accent: '56, 189, 248',
     preview: 'aquarium'
   },
@@ -16,7 +18,9 @@ const TINY_WORLDS = [
     slug: 'cat',
     title: 'Ragdoll Cat',
     icon: '🐈',
-    description: 'A fluffy companion that stalks, pounces, naps, and purrs when you pet it.',
+    lede: 'A fluffy, floppy companion in a sunny room. It watches you, stalks a laser dot, pounces on yarn, and purrs when you stroke it.',
+    actions: ['Pet it slowly', 'Toss a treat', 'Play with yarn'],
+    cta: 'Say hello',
     accent: '255, 178, 122',
     preview: 'cat'
   }
