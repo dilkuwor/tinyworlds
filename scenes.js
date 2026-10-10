@@ -43,5 +43,15 @@ const TINY_WORLDS = [
     cta: 'Watch the birds',
     accent: '185, 224, 138',
     preview: 'feeder'
+  },
+  {
+    slug: 'meadow',
+    title: 'Night Meadow',
+    icon: '✨',
+    lede: 'Tall grass under the stars and a pond holding the moon. Fireflies blink on their own clocks, until, left in peace, the whole meadow slowly learns to blink as one.',
+    actions: ['Hold still to gather them', 'Call with a lantern', 'Wait for the rhythm'],
+    cta: 'Step into the night',
+    accent: '232, 245, 154',
+    preview: 'meadow'
   }
 ];

@@ -514,7 +514,35 @@ function feederPreview(canvas) {
   return { layout, frame };
 }
 
-const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview, feeder: feederPreview };
+/** The real meadow at dusk; resting the pointer on it draws the fireflies in. */
+function meadowPreview(canvas) {
+  const meadow = new MeadowWorld(canvas, { preview: true });
+  meadow.setMood('dusk');
+  let still = 0, last = null;
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, meadow.ctx);
+    meadow.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    if (pointer) {
+      const moved = last ? Math.hypot(pointer.x - last.x, pointer.y - last.y) : 99;
+      still = moved < 3 ? Math.min(1, still + dt * 0.8) : Math.max(0.3, still - dt);
+      meadow.setAttractor(pointer.x, pointer.y, still);
+    } else {
+      still = 0;
+      meadow.setAttractor(0, 0, 0);
+    }
+    last = pointer ? { ...pointer } : null;
+    meadow.update(dt);
+    meadow.draw();
+  };
+
+  return { layout, frame };
+}
+
+const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview, feeder: feederPreview, meadow: meadowPreview };
 
 // ==========================================
 // WORLD SECTIONS

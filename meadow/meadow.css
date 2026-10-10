@@ -1,0 +1,37 @@
+/* Night Meadow: firefly-gold accent on the shared glass UI */
+:root {
+  --primary-color: #e8f59a;
+  --primary-glow: rgba(232, 245, 154, 0.4);
+  --accent-rgb: 232, 245, 154;
+  --accent2-rgb: 150, 190, 90;
+  --bg-glass: rgba(8, 14, 34, 0.6);
+  --bg-glass-soft: rgba(8, 14, 34, 0.34);
+  --text-main: #eef2ff;
+  --text-muted: #b6c0dc;
+}
+
+html, body {
+  background-color: #050a18;
+}
+
+#world {
+  cursor: default;
+}
+
+.meter {
+  display: inline-block;
+  width: 42px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+
+.meter-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b7e36a, #f3e88a);
+  transition: width 0.6s ease;
+}
