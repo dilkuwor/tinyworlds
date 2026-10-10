@@ -11,6 +11,7 @@
 </head>
 <body>
   <div id="world">
+    <canvas id="rain-gl"></canvas>
     <canvas id="rain-canvas"></canvas>
 
     <!-- Top Navigation & Status -->
@@ -57,6 +58,11 @@
         <button id="btn-mood" class="btn" title="Grey day / Dusk / Night / Storm (D)">
           <span id="mood-icon" class="btn-icon">🌙</span>
           <span id="mood-label" class="btn-label">Night</span>
+        </button>
+
+        <button id="btn-look" class="btn" title="Realistic (WebGL) or classic look (V)">
+          <span id="look-icon" class="btn-icon">✨</span>
+          <span id="look-label" class="btn-label">Realistic</span>
         </button>
 
         <button id="btn-sound" class="btn" title="Toggle the sound of the rain (M)">
@@ -128,6 +134,7 @@
                 <tr><td><kbd>W</kbd> / <kbd>Space</kbd></td><td>Squeegee the whole window</td></tr>
                 <tr><td><kbd>R</kbd></td><td>Light / Steady / Heavy rain</td></tr>
                 <tr><td><kbd>D</kbd></td><td>Grey day / Dusk / Night / Storm</td></tr>
+                <tr><td><kbd>V</kbd></td><td>Realistic / classic look</td></tr>
                 <tr><td><kbd>M</kbd></td><td>Toggle sound</td></tr>
                 <tr><td><kbd>T</kbd></td><td>Show / hide the toolbar</td></tr>
                 <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
@@ -146,6 +153,7 @@
   <script src="/shared/shell.js"></script>
   <script src="/rain/sounds.js"></script>
   <script src="/rain/rain.js"></script>
+  <script src="/rain/glass-gl.js"></script>
   <script src="/rain/scene.js"></script>
 </body>
 </html>

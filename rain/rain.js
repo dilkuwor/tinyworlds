@@ -73,6 +73,7 @@ class RainWorld {
     this.dropAcc = 0;
     this.beadAcc = 0;
     this.carTimer = 1;
+    this.dropScale = 1;       // the realistic renderer uses larger drops
     this.onDrip = null;       // (x) => void, a drop reached the sill
     this.onLightning = null;  // (strength) => void
 
@@ -292,7 +293,7 @@ class RainWorld {
     const S = this.S;
     this.drops.push({
       x, y,
-      r: r ?? (Math.pow(Math.random(), 1.7) * 8 + 2) * S,
+      r: r ?? (Math.pow(Math.random(), 1.7) * 8 + 2) * S * this.dropScale,
       vy: 0, sliding: false, stall: 0, trail: 0, seed: Math.random() * 10, dead: false
     });
     const cap = (this.preview ? 70 : 240) * Math.max(0.5, this.area);
@@ -370,10 +371,16 @@ class RainWorld {
 
     // Fog slowly returns
     const regrow = this.preview ? 0.22 : 0.1;
-    const c = this.fogMaskCtx;
-    c.globalCompositeOperation = 'source-over';
-    c.fillStyle = `rgba(0, 0, 0, ${(1 - Math.exp(-regrow * dt)).toFixed(4)})`;
-    c.fillRect(0, 0, this.fogMask.width, this.fogMask.height);
+    // Tiny per-frame amounts round to nothing in an 8-bit canvas, so let the
+    // mist build up and lay it down in steps the canvas can actually store
+    this.fogAcc = (this.fogAcc || 0) + (1 - Math.exp(-regrow * dt));
+    if (this.fogAcc >= 0.03) {
+      const c = this.fogMaskCtx;
+      c.globalCompositeOperation = 'source-over';
+      c.fillStyle = `rgba(0, 0, 0, ${this.fogAcc.toFixed(4)})`;
+      c.fillRect(0, 0, this.fogMask.width, this.fogMask.height);
+      this.fogAcc = 0;
+    }
 
     // New rain
     const scale = Math.max(0.4, this.area) * (this.preview ? 0.8 : 1);
@@ -423,7 +430,7 @@ class RainWorld {
     for (const d of this.drops) {
       if (d.dead) continue;
       if (!d.sliding) {
-        if (d.r > 4.2 * S && Math.random() < dt * (d.r / (6 * S)) * 0.3) d.sliding = true;
+        if (d.r > 4.2 * S * this.dropScale && Math.random() < dt * (d.r / (6 * S)) * 0.3) d.sliding = true;
         else continue;
       }
       if (d.stall > 0) {
@@ -443,8 +450,8 @@ class RainWorld {
         if (Math.random() < 0.85) this.beads.push({ x: d.x + (Math.random() - 0.5) * d.r * 0.3, y: d.y - d.r * 1.2, r: d.r * rr(0.18, 0.34), dead: false });
         d.r *= 0.986;
       }
-      this.clearFog(d.x, d.y, d.r * 0.75, 0.06);
-      if (d.r < 2.6 * S) d.sliding = false;
+      this.clearFog(d.x, d.y, d.r * 0.75 / this.dropScale, 0.06 / (this.dropScale * this.dropScale));
+      if (d.r < 2.6 * S * this.dropScale) d.sliding = false;
 
       // Merge with whatever is in the way
       const cx = Math.floor(d.x / cell), cy = Math.floor(d.y / cell);
@@ -456,9 +463,9 @@ class RainWorld {
             if (o === d || o.dead) continue;
             const dist = Math.hypot(o.x - d.x, o.y - d.y);
             if (kind === 1) {
-              if (dist < d.r) { o.dead = true; d.r = Math.min(13 * S, d.r + o.r * 0.06); }
+              if (dist < d.r) { o.dead = true; d.r = Math.min(13 * S * this.dropScale, d.r + o.r * 0.06); }
             } else if (dist < d.r + o.r * 0.7) {
-              d.r = Math.min(13 * S, Math.sqrt(d.r * d.r + o.r * o.r));
+              d.r = Math.min(13 * S * this.dropScale, Math.sqrt(d.r * d.r + o.r * o.r));
               o.dead = true;
             }
           }
@@ -679,13 +686,72 @@ class RainWorld {
     c.restore();
 
     this.drawRoom(c);
+    this.drawVignette(c);
+  }
 
-    // Soft vignette
+  drawVignette(c) {
+    const { w, h } = this;
     const vg = c.createRadialGradient(w / 2, h * 0.45, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.8);
     vg.addColorStop(0, 'rgba(0, 0, 0, 0)');
     vg.addColorStop(1, 'rgba(0, 0, 0, 0.35)');
     c.fillStyle = vg;
     c.fillRect(0, 0, w, h);
+  }
+
+  // ---------- Layers for the WebGL renderer (glass-gl.js) ----------
+
+  /** The view outside (city + moving lights), drawn at `scale` of CSS size. */
+  drawSceneLayer(c, scale, blurry = false) {
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.globalCompositeOperation = 'source-over';
+    c.drawImage(blurry ? this.mid : this.bg, 0, 0, this.w * scale, this.h * scale);
+    this.drawLights(c, scale, blurry);
+  }
+
+  /** One sprite encoding a drop's surface: R,G = normal, B = thickness, A = coverage. */
+  makeNormalSprite() {
+    const N = 64, c = document.createElement('canvas');
+    c.width = c.height = N;
+    const x = c.getContext('2d');
+    const img = x.createImageData(N, N);
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const dx = (i + 0.5) / N * 2 - 1, dy = (j + 0.5) / N * 2 - 1;
+        const r2 = dx * dx + dy * dy, k = (j * N + i) * 4;
+        if (r2 >= 1) { img.data[k + 3] = 0; continue; }
+        const z = Math.sqrt(1 - r2);
+        img.data[k] = Math.round((dx * 0.5 + 0.5) * 255);
+        img.data[k + 1] = Math.round((dy * 0.5 + 0.5) * 255);
+        img.data[k + 2] = Math.round(z * 255);
+        img.data[k + 3] = Math.round(Math.min(1, (1 - r2) * 5) * 255);
+      }
+    }
+    x.putImageData(img, 0, 0);
+    return c;
+  }
+
+  /** Draw every bead and drop into a water map at `scale` of CSS size. */
+  drawWaterMap(c, scale) {
+    if (!this.normalSprite) this.normalSprite = this.makeNormalSprite();
+    const sp = this.normalSprite, gb = this.glassBottom;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+    for (const b of this.beads) {
+      if (b.y > gb) continue;
+      c.drawImage(sp, (b.x - b.r) * scale, (b.y - b.r * 1.1) * scale, b.r * 2 * scale, b.r * 2.2 * scale);
+    }
+    for (const d of this.drops) {
+      if (d.y > gb) continue;
+      c.drawImage(sp, (d.x - d.r) * scale, (d.y - d.r * 1.12) * scale, d.r * 2 * scale, d.r * 2.24 * scale);
+    }
+  }
+
+  /** The room in front of the glass, on a transparent overlay. */
+  drawOverlay(c) {
+    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    c.clearRect(0, 0, this.w, this.h);
+    this.drawRoom(c);
+    this.drawVignette(c);
   }
 }
 

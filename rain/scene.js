@@ -22,7 +22,14 @@ class RainScene {
     this.stage = createStage(this.canvas, (stage) => {
       this.stage = stage;
       this.rain.resize(stage.width, stage.height, stage.dpr);
+      if (this.glass) this.glass.resize(stage.width, stage.height, stage.dpr);
     });
+
+    // Realistic (WebGL) glass, with the classic renderer as a fallback
+    this.glass = RainGlassGL.create(document.getElementById('rain-gl'), this.rain);
+    if (this.glass) this.glass.resize(this.stage.width, this.stage.height, this.stage.dpr);
+    this.realistic = !!this.glass && saved.look !== 'classic';
+    this.rain.dropScale = this.realistic ? 1.6 : 1;
 
     this.rain.onDrip = (x, size) => {
       if (this.rain.t - this.lastDrip > 0.08) {
@@ -77,6 +84,7 @@ class RainScene {
       else if (k === 'r') this.cycleLevel();
       else if (k === 'd') this.cycleMood();
       else if (k === 'm') this.toggleSound();
+      else if (k === 'v') this.toggleLook();
     });
   }
 
@@ -85,6 +93,15 @@ class RainScene {
     document.getElementById('btn-level')?.addEventListener('click', () => this.cycleLevel());
     document.getElementById('btn-mood')?.addEventListener('click', () => this.cycleMood());
     document.getElementById('btn-sound')?.addEventListener('click', () => this.toggleSound());
+    document.getElementById('btn-look')?.addEventListener('click', () => this.toggleLook());
+  }
+
+  toggleLook() {
+    if (!this.glass) return;
+    this.realistic = !this.realistic;
+    this.rain.dropScale = this.realistic ? 1.6 : 1;
+    this.save();
+    this.updateLabels();
   }
 
   // ---------- Actions ----------
@@ -125,7 +142,7 @@ class RainScene {
   }
 
   save() {
-    try { localStorage.setItem('tinyworlds.rain.state', JSON.stringify({ mood: this.rain.mood, level: this.rain.level })); } catch (_) {}
+    try { localStorage.setItem('tinyworlds.rain.state', JSON.stringify({ mood: this.rain.mood, level: this.rain.level, look: this.realistic ? 'realistic' : 'classic' })); } catch (_) {}
   }
 
   updateLabels() {
@@ -135,6 +152,13 @@ class RainScene {
     document.getElementById('level-icon').textContent = L.icon;
     document.getElementById('level-label').textContent = L.label;
     document.getElementById('stat-rain').textContent = L.label;
+    const look = document.getElementById('look-label');
+    if (look) {
+      look.textContent = !this.glass ? 'Classic' : this.realistic ? 'Realistic' : 'Classic';
+      document.getElementById('look-icon').textContent = this.realistic ? '✨' : '🎨';
+      document.getElementById('btn-look').disabled = !this.glass;
+    }
+    document.getElementById('rain-gl').style.visibility = this.realistic ? 'visible' : 'hidden';
   }
 
   updateClock() {
@@ -161,7 +185,12 @@ class RainScene {
     }
 
     this.rain.update(dt);
-    this.rain.draw();
+    if (this.realistic) {
+      this.glass.render();
+      this.rain.drawOverlay(this.stage.ctx);
+    } else {
+      this.rain.draw();
+    }
     if (this.sweep) this.drawSqueegee(this.sweep.x);
   }
 
