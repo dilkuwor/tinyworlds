@@ -1,0 +1,10 @@
+.git
+.github
+.gitignore
+.dockerignore
+.env
+.env.*
+Dockerfile
+*.md
+.prompt-*
+.DS_Store

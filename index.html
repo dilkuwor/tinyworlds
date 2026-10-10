@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiny Worlds · Small living worlds to rest your eyes on</title>
+  <meta name="description" content="A collection of calm, interactive canvas animations: an aquarium, a Ragdoll cat, and more tiny worlds to come.">
+  <meta name="theme-color" content="#0a1130">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>">
+  <link rel="stylesheet" href="/landing.css">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+
+  <main class="page">
+    <header class="hero">
+      <h1 class="wordmark">Tiny Worlds</h1>
+      <p class="tagline">Small living worlds to rest your eyes on.</p>
+    </header>
+
+    <section id="worlds" class="worlds" aria-label="Worlds"></section>
+
+    <footer class="footer">
+      Tip: inside any world, press <kbd>F</kbd> for fullscreen and <kbd>T</kbd> to tuck the toolbar away.
+    </footer>
+  </main>
+
+  <script src="/shared/canvas.js"></script>
+  <script src="/aquarium/entities.js"></script>
+  <script src="/cat/cat.js"></script>
+  <script src="/cat/room.js"></script>
+  <script src="/scenes.js"></script>
+  <script src="/landing.js"></script>
+</body>
+</html>

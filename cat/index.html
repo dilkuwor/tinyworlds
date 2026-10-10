@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ragdoll Cat · Tiny Worlds</title>
+  <meta name="theme-color" content="#e9dccb">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐈</text></svg>">
+  <link rel="stylesheet" href="/shared/ui.css">
+  <link rel="stylesheet" href="/cat/cat.css">
+</head>
+<body>
+  <div id="world">
+    <canvas id="cat-canvas"></canvas>
+
+    <!-- Top Navigation & Status -->
+    <header class="top-nav ui-chrome">
+      <a class="brand glass-panel" href="/" title="Back to Tiny Worlds">
+        <span class="brand-home" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </span>
+        <span class="brand-icon">🐈</span>
+        <span class="brand-title">Ragdoll Cat</span>
+      </a>
+
+      <div class="stats-bar glass-panel">
+        <div class="stat-item" title="Mood">
+          <span id="stat-mood-icon" class="stat-icon">😌</span>
+          <span id="stat-mood" class="stat-value">Content</span>
+        </div>
+        <div id="stat-happy" class="stat-item" title="Happiness">
+          <span class="stat-icon">💗</span>
+          <span class="meter"><span id="stat-happy-bar" class="meter-fill"></span></span>
+        </div>
+        <div class="stat-item" title="Treats eaten">
+          <span class="stat-icon">🐟</span>
+          <span id="stat-treats" class="stat-value">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Interaction Hint (fades out after a few seconds) -->
+    <div id="hint-banner" class="hint-banner glass-panel">
+      Hover slowly to pet • Click for a treat • <kbd>Y</kbd> Yarn • <kbd>L</kbd> Laser • <kbd>D</kbd> Lighting • <kbd>T</kbd> Toolbar
+    </div>
+
+    <!-- Bottom Controls Toolbar -->
+    <div id="toolbar-container" class="toolbar-container ui-chrome">
+      <div class="toolbar glass-panel">
+        <button id="btn-treat" class="btn btn-primary" title="Toss a treat (Space)">
+          <span class="btn-icon">🐟</span>
+          <span class="btn-label">Treat</span>
+        </button>
+
+        <div class="dropdown" id="toy-dropdown">
+          <button id="btn-toy" class="btn" data-dropdown-toggle title="Choose a toy (Y yarn, L laser)">
+            <span id="toy-icon" class="btn-icon">🖐️</span>
+            <span id="toy-label" class="btn-label">Hand</span>
+          </button>
+          <div class="dropdown-menu glass-panel">
+            <button class="dropdown-item selected" data-toy="none">
+              <span>🖐️</span> Hand: pet &amp; treats
+            </button>
+            <button class="dropdown-item" data-toy="yarn">
+              <span>🧶</span> Yarn ball
+            </button>
+            <button class="dropdown-item" data-toy="laser">
+              <span>🔴</span> Laser pointer
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-theme" class="btn" title="Cycle Morning / Afternoon / Evening / Night (D)">
+          <span id="theme-icon" class="btn-icon">☀️</span>
+          <span id="theme-btn-label" class="btn-label">Afternoon</span>
+        </button>
+
+        <button id="btn-sound" class="btn" title="Toggle sound and purring (M)">
+          <span id="sound-icon" class="btn-icon">🔇</span>
+          <span id="sound-label" class="btn-label">Off</span>
+        </button>
+
+        <button id="btn-help" class="btn" title="Guide and keyboard shortcuts (?)">
+          <span class="btn-icon">ℹ️</span>
+          <span class="btn-label">Guide</span>
+        </button>
+
+        <div class="separator"></div>
+
+        <button id="btn-collapse" class="btn btn-ghost" title="Hide toolbar (T)" aria-label="Hide toolbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Small handle shown while the toolbar is collapsed -->
+    <button id="toolbar-handle" class="toolbar-handle glass-panel" title="Show toolbar (T)" aria-label="Show toolbar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+    </button>
+
+    <!-- Guide Modal -->
+    <div id="help-modal" class="modal-overlay">
+      <div class="modal glass-panel">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span>🐈</span> Ragdoll Cat Guide
+          </div>
+          <button id="btn-close-help" class="btn-close" title="Close guide">&times;</button>
+        </div>
+        <div class="modal-content">
+          <p>
+            Meet a fluffy seal-point Ragdoll. Gentle and floppy, it watches your cursor,
+            stalks and pounces, loves treats, and purrs when you pet it. Leave it alone
+            for a while and it will curl up in its bed for a nap.
+          </p>
+
+          <div>
+            <strong>Ways to play</strong>
+            <div class="species-grid">
+              <div class="species-card">
+                <strong>Pet</strong>
+                Move slowly over the cat. It leans in and purrs. Scrub too fast and it walks off.
+              </div>
+              <div class="species-card">
+                <strong>Treats</strong>
+                Click the floor or press Space. It trots over and munches.
+              </div>
+              <div class="species-card">
+                <strong>Yarn ball</strong>
+                Click to toss it. The cat bats it around the room.
+              </div>
+              <div class="species-card">
+                <strong>Laser</strong>
+                A red dot follows your pointer. Watch the crouch, wiggle and pounce.
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <strong>Keyboard Shortcuts</strong>
+            <table class="shortcuts-table">
+              <tbody>
+                <tr><td>Hover / stroke</td><td>Pet the cat</td></tr>
+                <tr><td>Click</td><td>Drop a treat (or toss yarn in yarn mode)</td></tr>
+                <tr><td><kbd>Space</kbd></td><td>Toss a treat</td></tr>
+                <tr><td><kbd>Y</kbd> / <kbd>L</kbd></td><td>Yarn ball / laser pointer</td></tr>
+                <tr><td><kbd>D</kbd></td><td>Cycle Morning / Afternoon / Evening / Night</td></tr>
+                <tr><td><kbd>M</kbd></td><td>Toggle sound and purring</td></tr>
+                <tr><td><kbd>T</kbd></td><td>Show / hide the toolbar</td></tr>
+                <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+                <tr><td><kbd>?</kbd> / <kbd>H</kbd></td><td>Open / close this guide</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/shared/canvas.js"></script>
+  <script src="/shared/audio.js"></script>
+  <script src="/shared/shell.js"></script>
+  <script src="/cat/sounds.js"></script>
+  <script src="/cat/cat.js"></script>
+  <script src="/cat/room.js"></script>
+  <script src="/cat/toys.js"></script>
+  <script src="/cat/scene.js"></script>
+</body>
+</html>
