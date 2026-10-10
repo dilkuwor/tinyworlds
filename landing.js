@@ -484,7 +484,37 @@ function rainPreview(canvas) {
   return { layout, frame };
 }
 
-const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview };
+/** The real garden; seed is topped up so there are always visitors. Fast moves startle them. */
+function feederPreview(canvas) {
+  const garden = new FeederWorld(canvas, { preview: true });
+  let last = null, topUp = 0;
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, garden.ctx);
+    garden.resize(width, height, dpr);
+    garden.scatter(width * 0.3, garden.groundY - 30, 24);
+  };
+
+  const frame = (pointer, dt) => {
+    if (pointer && last) {
+      const v = Math.hypot(pointer.x - last.x, pointer.y - last.y) / Math.max(dt, 0.008);
+      if (v > 1600) garden.startle(pointer.x, pointer.y, 110, 0.7);
+    }
+    last = pointer ? { ...pointer } : null;
+    topUp -= dt;
+    if (topUp <= 0) {
+      topUp = 6;
+      if (garden.seeds.length < 12) garden.scatter(garden.w * (0.15 + Math.random() * 0.35), garden.groundY - 30, 18);
+      if (garden.feederSeed < 0.3) garden.refill();
+    }
+    garden.update(dt);
+    garden.draw();
+  };
+
+  return { layout, frame };
+}
+
+const PREVIEWS = { aquarium: aquariumPreview, cat: catPreview, rain: rainPreview, feeder: feederPreview };
 
 // ==========================================
 // WORLD SECTIONS

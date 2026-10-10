@@ -33,5 +33,15 @@ const TINY_WORLDS = [
     cta: 'Look outside',
     accent: '169, 196, 224',
     preview: 'rain'
+  },
+  {
+    slug: 'feeder',
+    title: 'The Feeder',
+    icon: '🐦',
+    lede: 'A garden feeder outside the window. Scatter seed and see who comes: sparrows and finches, a bold chickadee, now and then a cardinal. Move gently, or the whole flock bursts away.',
+    actions: ['Scatter seed', 'Spot every species', 'Try not to startle them'],
+    cta: 'Watch the birds',
+    accent: '185, 224, 138',
+    preview: 'feeder'
   }
 ];

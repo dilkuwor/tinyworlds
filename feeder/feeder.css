@@ -1,0 +1,19 @@
+/* The Feeder: leafy accent on the shared glass UI */
+:root {
+  --primary-color: #b9e08a;
+  --primary-glow: rgba(185, 224, 138, 0.4);
+  --accent-rgb: 185, 224, 138;
+  --accent2-rgb: 110, 170, 90;
+  --bg-glass: rgba(34, 48, 30, 0.58);
+  --bg-glass-soft: rgba(34, 48, 30, 0.32);
+  --text-main: #f4f8ec;
+  --text-muted: #d2e0c2;
+}
+
+html, body {
+  background-color: #9cc27a;
+}
+
+#world {
+  cursor: default;
+}
