@@ -17,6 +17,7 @@ const Shell = {
     this.world = document.getElementById('world');
 
     this.setupToolbar();
+    this.setupFullscreen();
     this.setupDropdowns();
     this.setupHelp();
     this.setupHint();
@@ -137,13 +138,41 @@ const Shell = {
     });
   },
 
+  // ---------- Fullscreen button (for TVs and touch screens, where there's no F key) ----------
+  setupFullscreen() {
+    const help = document.getElementById('btn-help');
+    const el = document.documentElement;
+    if (!help || !(el.requestFullscreen || el.webkitRequestFullscreen)) return; // e.g. iPhone Safari
+    const btn = document.createElement('button');
+    btn.id = 'btn-fullscreen';
+    btn.className = 'btn';
+    btn.innerHTML = '<span class="btn-icon"></span><span class="btn-label"></span>';
+    help.after(btn);
+    btn.addEventListener('click', () => this.toggleFullscreen());
+
+    const icon = (d) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="${d}"/></svg>`;
+    const expand = 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5';
+    const shrink = 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5';
+    const sync = () => {
+      const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      btn.querySelector('.btn-icon').innerHTML = icon(on ? shrink : expand);
+      btn.querySelector('.btn-label').textContent = on ? 'Exit' : 'Fullscreen';
+      btn.title = on ? 'Exit fullscreen (F)' : 'Fullscreen (F)';
+      btn.setAttribute('aria-label', btn.title);
+    };
+    document.addEventListener('fullscreenchange', sync);
+    document.addEventListener('webkitfullscreenchange', sync);
+    sync();
+  },
+
   toggleFullscreen() {
     const doc = document;
     if (doc.fullscreenElement || doc.webkitFullscreenElement) {
-      (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc);
+      (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc)?.catch?.(() => {});
     } else {
       const el = doc.documentElement;
-      (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+      // Browsers can refuse (no user gesture, kiosk mode); nothing to do then
+      (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)?.catch?.(() => {});
     }
   }
 };
