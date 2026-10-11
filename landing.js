@@ -414,6 +414,268 @@ function startHero() {
 }
 
 // ==========================================
+// HERO BUTTERFLY
+// ==========================================
+
+const BUTTERFLY_PALETTES = {
+  dark: { inner: '#d6f1ff', mid: '#5ea9ff', edge: '#2b2f86', rim: '#14123a', glow: 'rgba(130, 190, 255, 0.55)' },
+  light: { inner: '#ffd88a', mid: '#f39a2c', edge: '#c0501a', rim: '#2b1a14', glow: 'rgba(255, 170, 70, 0)' }
+};
+
+/**
+ * A butterfly that wanders between the letters of the wordmark, settling on
+ * top of one for a while before flitting off to another. Letters are
+ * measured from the real text (no extra markup), so it lands on the ink
+ * itself: the bar of the T, the dot of the i. Comes close and it takes off.
+ */
+function startButterfly() {
+  const canvas = document.getElementById('hero-butterfly');
+  const hero = document.querySelector('.hero');
+  const content = document.querySelector('.hero-content');
+  const word = document.querySelector('.wordmark');
+  const text = word && [...word.childNodes].find(n => n.nodeType === Node.TEXT_NODE);
+  if (!canvas || !text) return;
+  const ctx = canvas.getContext('2d');
+  const measure = document.createElement('canvas').getContext('2d');
+  const range = document.createRange();
+  const rand = (a, b) => a + Math.random() * (b - a);
+  let w = 0, h = 0, letters = [], size = 30;
+  let day = Theme.current === 'light' ? 1 : 0;
+  const pointer = { x: -1e4, y: -1e4 };
+
+  // Each letter's ink, relative to where the browser puts its glyph box
+  const layout = () => {
+    ({ width: w, height: h } = fitCanvas(canvas, ctx, hero.clientWidth, hero.clientHeight));
+    const cs = getComputedStyle(word);
+    const fs = parseFloat(cs.fontSize);
+    measure.font = `${cs.fontStyle} ${cs.fontWeight} ${fs}px ${cs.fontFamily}`;
+    const ascent = measure.measureText('Hg').fontBoundingBoxAscent ?? fs * 0.8;
+    letters = [];
+    for (let i = 0; i < text.data.length; i++) {
+      const ch = text.data[i];
+      if (!ch.trim()) continue;
+      const m = measure.measureText(ch);
+      letters.push({ i, drop: ascent - m.actualBoundingBoxAscent, mid: (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2 });
+    }
+    size = Math.max(16, fs * 0.21);
+  };
+
+  // Top of a letter's ink, in hero coordinates (follows the scroll drift)
+  const spot = (L) => {
+    range.setStart(text, L.i);
+    range.setEnd(text, L.i + 1);
+    const r = range.getBoundingClientRect(), hr = hero.getBoundingClientRect();
+    return { x: r.left - hr.left + L.mid, y: r.top - hr.top + L.drop };
+  };
+  const where = (target) => (target.letter ? spot(target.letter) : target);
+
+  const b = { x: 0, y: 0, angle: 0.5, flap: 0, rest: 0, perch: null, target: null, path: null, t: 0, dur: 1, tilt: 0, open: 1 };
+
+  const flyTo = (target) => {
+    const end = where(target);
+    const dx = end.x - b.x, dist = Math.hypot(dx, end.y - b.y);
+    const top = Math.min(b.y, end.y) - (30 + Math.random() * 70 + dist * 0.22);
+    b.path = {
+      x0: b.x, y0: b.y,
+      x1: b.x + dx * 0.25 + rand(-70, 70), y1: top,
+      x2: b.x + dx * 0.75 + rand(-70, 70), y2: top + rand(0, 50)
+    };
+    b.perch = null;
+    b.target = target;
+    b.t = 0;
+    b.dur = 1.1 + dist / 200;
+  };
+
+  // Usually another letter; now and then a little wander out into the sky first
+  const next = () => {
+    if (b.target && b.target.letter && Math.random() < 0.22) {
+      flyTo({ x: rand(w * 0.12, w * 0.88), y: rand(h * 0.06, h * 0.3) });
+      return;
+    }
+    const others = letters.filter(L => L !== b.perch);
+    flyTo({ letter: others[Math.floor(Math.random() * others.length)] });
+  };
+
+  const land = (letter) => {
+    b.perch = letter;
+    b.rest = rand(2.5, 6.5);
+    b.tilt = rand(-0.28, 0.28);
+  };
+
+  const drawWing = (pal, s, fore) => {
+    ctx.beginPath();
+    if (fore) {
+      ctx.moveTo(0.04 * s, -0.1 * s);
+      ctx.bezierCurveTo(0.25 * s, -0.55 * s, 0.6 * s, -0.86 * s, 0.98 * s, -0.8 * s);
+      ctx.bezierCurveTo(1.08 * s, -0.55 * s, 0.95 * s, -0.25 * s, 0.78 * s, -0.08 * s);
+      ctx.bezierCurveTo(0.55 * s, 0, 0.25 * s, 0.02 * s, 0.04 * s, 0.02 * s);
+    } else {
+      ctx.moveTo(0.04 * s, 0);
+      ctx.bezierCurveTo(0.4 * s, -0.08 * s, 0.82 * s, 0, 0.84 * s, 0.3 * s);
+      ctx.bezierCurveTo(0.86 * s, 0.58 * s, 0.5 * s, 0.78 * s, 0.25 * s, 0.62 * s);
+      ctx.bezierCurveTo(0.1 * s, 0.5 * s, 0.04 * s, 0.3 * s, 0.04 * s, 0.12 * s);
+    }
+    ctx.closePath();
+    const g = ctx.createRadialGradient(0.05 * s, 0, 0, 0.05 * s, 0, 1.05 * s);
+    g.addColorStop(0, pal.inner);
+    g.addColorStop(0.45, pal.mid);
+    g.addColorStop(1, pal.edge);
+    ctx.fillStyle = g;
+    ctx.fill();
+    // A dark border band just inside the edge
+    ctx.save();
+    ctx.clip();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = s * 0.13;
+    ctx.strokeStyle = pal.rim;
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  const drawButterfly = (alpha) => {
+    const s = size, pal = {};
+    for (const k of ['inner', 'mid', 'edge', 'rim']) pal[k] = mixHex(BUTTERFLY_PALETTES.dark[k], BUTTERFLY_PALETTES.light[k], day);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(b.x, b.y - s * 0.6);
+    ctx.rotate(b.angle);
+
+    for (const side of [-1, 1]) {
+      ctx.save();
+      ctx.scale(side * (0.1 + 0.9 * b.open), 1);
+      if (day < 0.5) {
+        ctx.shadowColor = BUTTERFLY_PALETTES.dark.glow;
+        ctx.shadowBlur = s * 0.6 * (1 - day * 2);
+      }
+      drawWing(pal, s, false);
+      drawWing(pal, s, true);
+      ctx.shadowBlur = 0;
+      // Fine veins, and pale spots along the wing tip
+      ctx.strokeStyle = 'rgba(20, 15, 40, 0.18)';
+      ctx.lineWidth = Math.max(0.6, s * 0.018);
+      ctx.beginPath();
+      for (const [x, y] of [[0.95, -0.72], [0.92, -0.42], [0.72, -0.12], [0.78, 0.3], [0.5, 0.58]]) {
+        ctx.moveTo(0.06 * s, 0);
+        ctx.quadraticCurveTo(x * s * 0.5, y * s * 0.4, x * s * 0.9, y * s * 0.9);
+      }
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      for (const [x, y, r] of [[0.96, -0.74, 0.03], [1.0, -0.6, 0.026], [0.98, -0.45, 0.024], [0.84, -0.8, 0.026], [0.8, 0.36, 0.026], [0.72, 0.56, 0.026], [0.5, 0.66, 0.024]]) {
+        ctx.beginPath();
+        ctx.arc(x * s, y * s, r * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Body, head and antennae
+    ctx.fillStyle = '#231a2c';
+    ctx.beginPath();
+    ctx.ellipse(0, 0.06 * s, 0.05 * s, 0.36 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, -0.32 * s, 0.07 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#231a2c';
+    ctx.lineWidth = Math.max(0.8, s * 0.025);
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(side * 0.02 * s, -0.37 * s);
+      ctx.quadraticCurveTo(side * 0.06 * s, -0.6 * s, side * 0.2 * s, -0.7 * s);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(side * 0.2 * s, -0.7 * s, 0.03 * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  };
+
+  const render = () => {
+    ctx.clearRect(0, 0, w, h);
+    const alpha = parseFloat(content.style.opacity || '1');
+    if (alpha > 0.01) drawButterfly(alpha);
+  };
+
+  const step = (dt) => {
+    if (b.perch) {
+      ({ x: b.x, y: b.y } = spot(b.perch));
+      b.rest -= dt;
+      // Wings fold and open slowly while it rests
+      b.flap += dt * 1.6;
+      b.open = 0.3 + 0.7 * (0.5 + 0.5 * Math.cos(b.flap));
+      b.angle += (b.tilt - b.angle) * Math.min(1, dt * 4);
+      const near = Math.hypot(pointer.x - b.x, pointer.y - b.y) < size * 1.6;
+      if (b.rest <= 0 || near) next();
+      return;
+    }
+    b.t = Math.min(1, b.t + dt / b.dur);
+    const e = 0.5 - 0.5 * Math.cos(Math.PI * b.t);
+    const u = 1 - e, end = where(b.target), p = b.path;
+    const x = u * u * u * p.x0 + 3 * u * u * e * p.x1 + 3 * u * e * e * p.x2 + e * e * e * end.x;
+    let y = u * u * u * p.y0 + 3 * u * u * e * p.y1 + 3 * u * e * e * p.y2 + e * e * e * end.y;
+    // A little lift with every wingbeat, settling out as it lands
+    b.flap += dt * Math.PI * 2 * 7;
+    y -= Math.sin(b.flap) * size * 0.12 * Math.sin(Math.PI * b.t);
+    b.open = 0.5 + 0.5 * Math.cos(b.flap);
+    // Head roughly into the flight, turning upright to land
+    const vx = x - b.x, vy = y - b.y;
+    const heading = Math.atan2(vx, -vy);
+    const want = b.t > 0.85 ? b.tilt : Math.max(-1.2, Math.min(1.2, heading));
+    let d = want - b.angle;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    b.angle += d * Math.min(1, dt * 5);
+    b.x = x;
+    b.y = y;
+    if (b.t >= 1) {
+      if (b.target.letter) land(b.target.letter);
+      else next();
+    }
+  };
+
+  window.addEventListener('pointermove', (e) => {
+    const hr = hero.getBoundingClientRect();
+    pointer.x = e.clientX - hr.left;
+    pointer.y = e.clientY - hr.top;
+  });
+
+  const begin = () => {
+    layout();
+    window.addEventListener('resize', layout);
+    if (!letters.length) return;
+    if (reduceMotion) {
+      // Still: one butterfly resting, wings open
+      land(letters[Math.floor(Math.random() * letters.length)]);
+      const still = () => { day = Theme.current === 'light' ? 1 : 0; ({ x: b.x, y: b.y } = spot(b.perch)); b.angle = b.tilt; render(); };
+      still();
+      window.addEventListener('resize', still);
+      window.addEventListener('scroll', still, { passive: true });
+      document.getElementById('theme-toggle')?.addEventListener('click', still);
+      return;
+    }
+    // Drift in from one side once the title has risen into place
+    const left = Math.random() < 0.5;
+    b.x = left ? -size * 2 : w + size * 2;
+    b.y = h * rand(0.15, 0.35);
+    b.angle = left ? 1 : -1;
+    let wait = 1.6, heroVisible = true;
+    new IntersectionObserver(([en]) => { heroVisible = en.isIntersecting; }).observe(hero);
+    startLoop((dt) => {
+      day += ((Theme.current === 'light' ? 1 : 0) - day) * Math.min(1, dt * 2.2);
+      if (!heroVisible) return;
+      if (wait > 0) {
+        wait -= dt;
+        if (wait <= 0) next();
+        return;
+      }
+      step(dt);
+      render();
+    });
+  };
+  // Measure with the real font, not a fallback
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(begin);
+}
+
+// ==========================================
 // PREVIEWS
 // ==========================================
 
@@ -895,6 +1157,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupHomeSound();
   buildShelf();
   startHero();
+  startButterfly();
   runPreviews(buildWorlds());
   setupReveal();
 });
