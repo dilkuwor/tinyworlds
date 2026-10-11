@@ -1,7 +1,8 @@
 /**
  * scene.js - The Feeder: input, controls and the loop
- * Click to scatter seed, click the feeder to refill it, move gently or the
- * birds take fright. Mood and the birds you have seen are remembered.
+ * Click to scatter seed, click the feeder to refill it (or let auto-fill keep
+ * it topped up), move gently or the birds take fright. Mood, auto-fill and the
+ * birds you have seen are remembered.
  */
 
 class FeederScene {
@@ -16,6 +17,8 @@ class FeederScene {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('tinyworlds.feeder.state') || '{}'); } catch (_) {}
     if (saved.mood) this.garden.setMood(saved.mood);
+    this.autoFill = !!saved.autoFill;
+    this.lowFor = 0; // seconds the feeder has been nearly empty
     (saved.seen || []).forEach(s => this.garden.seen.add(s));
     this.seenBefore = new Set(this.garden.seen);
 
@@ -75,6 +78,7 @@ class FeederScene {
       const k = e.key.toLowerCase();
       if (e.code === 'Space') { e.preventDefault(); this.scatterRandom(); }
       else if (k === 'r') this.refill();
+      else if (k === 'a') this.toggleAutoFill();
       else if (k === 'd') this.cycleMood();
       else if (k === 'm') this.toggleSound();
     });
@@ -83,6 +87,7 @@ class FeederScene {
   bindUI() {
     document.getElementById('btn-seed')?.addEventListener('click', () => this.scatterRandom());
     document.getElementById('btn-refill')?.addEventListener('click', () => this.refill());
+    document.getElementById('btn-autofill')?.addEventListener('click', () => this.toggleAutoFill());
     document.getElementById('btn-mood')?.addEventListener('click', () => this.cycleMood());
     document.getElementById('btn-sound')?.addEventListener('click', () => this.toggleSound());
   }
@@ -96,6 +101,24 @@ class FeederScene {
   refill() {
     this.garden.refill();
     window.soundManager.pour();
+  }
+
+  toggleAutoFill() {
+    this.autoFill = !this.autoFill;
+    this.lowFor = 0;
+    if (this.autoFill && this.garden.feederSeed < 0.15) this.refill();
+    this.save();
+    this.updateLabels();
+  }
+
+  /** With auto-fill on, top the feeder up a moment after it runs low. */
+  checkAutoFill(dt) {
+    if (!this.autoFill) return;
+    this.lowFor = this.garden.feederSeed < 0.12 ? this.lowFor + dt : 0;
+    if (this.lowFor > 1.5) {
+      this.lowFor = 0;
+      this.refill();
+    }
   }
 
   cycleMood() {
@@ -113,7 +136,7 @@ class FeederScene {
 
   save() {
     try {
-      localStorage.setItem('tinyworlds.feeder.state', JSON.stringify({ mood: this.garden.mood, seen: [...this.garden.seen] }));
+      localStorage.setItem('tinyworlds.feeder.state', JSON.stringify({ mood: this.garden.mood, autoFill: this.autoFill, seen: [...this.garden.seen] }));
     } catch (_) {}
   }
 
@@ -121,6 +144,10 @@ class FeederScene {
     const M = FEEDER_MOODS[this.garden.mood];
     document.getElementById('mood-icon').textContent = M.icon;
     document.getElementById('mood-label').textContent = M.label;
+    const auto = document.getElementById('btn-autofill');
+    auto?.classList.toggle('btn-active', this.autoFill);
+    auto?.setAttribute('aria-pressed', String(this.autoFill));
+    document.getElementById('autofill-label').textContent = this.autoFill ? 'Auto-fill on' : 'Auto-fill';
   }
 
   updateStats() {
@@ -140,6 +167,7 @@ class FeederScene {
 
   frame(dt) {
     this.garden.update(dt);
+    this.checkAutoFill(dt);
     this.garden.draw();
 
     this.ambientTimer -= dt;
