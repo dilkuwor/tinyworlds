@@ -35,6 +35,105 @@ const Theme = {
 };
 
 // ==========================================
+// AMBIENT SOUND (optional, off until asked for)
+// ==========================================
+/**
+ * A soft breeze with wind chimes that ring a little more when it gusts.
+ * At night a few distant crickets join in. Everything is synthesised.
+ */
+class HomeSound extends AudioEngine {
+  setupAmbient() {
+    const c = this.ctx;
+
+    // Breeze: filtered noise whose brightness and loudness drift slowly
+    const air = this.loopNoise();
+    this.breezeFilter = c.createBiquadFilter();
+    this.breezeFilter.type = 'bandpass';
+    this.breezeFilter.frequency.value = 420;
+    this.breezeFilter.Q.value = 0.6;
+    this.breezeGain = c.createGain();
+    this.breezeGain.gain.value = 0.02;
+    air.connect(this.breezeFilter);
+    this.breezeFilter.connect(this.breezeGain);
+    this.breezeGain.connect(this.master);
+
+    this.gust = 0.3;
+    this.nextChime = 2;
+    this.nextCricket = 3;
+    this.lastTick = performance.now();
+    this.timer = setInterval(() => this.tick(), 120);
+  }
+
+  /** Called a few times a second: drift the wind and decide what rings. */
+  tick() {
+    const now = performance.now();
+    const dt = Math.min(0.5, (now - this.lastTick) / 1000);
+    this.lastTick = now;
+    if (!this.audible) return;
+
+    // The wind wanders between calm and a gentle gust
+    this.gust += (Math.random() - 0.5) * dt * 0.6 + (0.35 - this.gust) * dt * 0.08;
+    this.gust = Math.max(0.05, Math.min(1, this.gust));
+    const t = this.ctx.currentTime;
+    this.breezeFilter.frequency.setTargetAtTime(300 + this.gust * 500, t, 1.5);
+    this.breezeGain.gain.setTargetAtTime(0.012 + this.gust * 0.03, t, 1.5);
+
+    // Chimes: more often when the wind picks up, sometimes two or three together
+    this.nextChime -= dt * (0.3 + this.gust * 1.4);
+    if (this.nextChime <= 0) {
+      const n = Math.random() < this.gust * 0.6 ? 2 + (Math.random() < 0.4 ? 1 : 0) : 1;
+      for (let i = 0; i < n; i++) this.chime(i * (0.12 + Math.random() * 0.25));
+      this.nextChime = 1.5 + Math.random() * 3.5;
+    }
+
+    // Crickets, only under the night sky
+    if (Theme.current !== 'light') {
+      this.nextCricket -= dt;
+      if (this.nextCricket <= 0) {
+        this.cricket();
+        this.nextCricket = 0.8 + Math.random() * 2.2;
+      }
+    }
+  }
+
+  /** One rod of a pentatonic wind chime: a pure tone with a faint metallic overtone. */
+  chime(delay = 0) {
+    const notes = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66];
+    const f = notes[Math.floor(Math.random() * notes.length)];
+    const g = 0.012 + Math.random() * 0.012;
+    this.tone({ freq: f, dur: 3.5 + Math.random() * 1.5, gain: g, attack: 0.003, delay });
+    this.tone({ freq: f * 2.76, dur: 1.2, gain: g * 0.25, attack: 0.002, delay });
+  }
+
+  /** A distant cricket: three quick, very quiet chirps. */
+  cricket() {
+    const f = 4200 + Math.random() * 600;
+    for (let i = 0; i < 3; i++) {
+      this.tone({ freq: f, dur: 0.045, gain: 0.0035, attack: 0.004, delay: i * 0.07 });
+    }
+  }
+}
+
+function setupHomeSound() {
+  const btn = document.getElementById('sound-toggle');
+  if (!btn || typeof AudioEngine === 'undefined') { btn?.remove(); return; }
+  const sound = new HomeSound();
+  btn.addEventListener('click', () => {
+    const on = !sound.toggleMute();
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.setAttribute('aria-label', on ? 'Turn off ambient sound' : 'Play soft ambient sound');
+    if (on) sound.chime();
+  });
+  // Fall silent while the tab is in the background
+  document.addEventListener('visibilitychange', () => {
+    if (!sound.ctx) return;
+    if (document.hidden) sound.ctx.suspend();
+    else if (!sound.isMuted) sound.ctx.resume();
+  });
+}
+
+// ==========================================
 // HERO: LIVING LANDSCAPE (night ↔ day)
 // ==========================================
 const HERO_PALETTES = {
@@ -733,6 +832,7 @@ function setupReveal() {
 
 window.addEventListener('DOMContentLoaded', () => {
   Theme.init();
+  setupHomeSound();
   buildWorldNav();
   startHero();
   runPreviews(buildWorlds());

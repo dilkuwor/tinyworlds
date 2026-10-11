@@ -27,6 +27,11 @@
     </span>
   </button>
 
+  <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="Play soft ambient sound" title="Ambient sound">
+    <svg class="sound-icon icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><path d="m16 9 5 6M21 9l-5 6"/></svg>
+    <svg class="sound-icon icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+  </button>
+
   <!-- Hero: a living night landscape -->
   <header class="hero" id="top">
     <canvas id="hero-sky" aria-hidden="true"></canvas>
@@ -72,6 +77,7 @@
   </footer>
 
   <script src="/shared/canvas.js"></script>
+  <script src="/shared/audio.js"></script>
   <script src="/aquarium/entities.js"></script>
   <script src="/cat/cat.js"></script>
   <script src="/cat/room.js"></script>
