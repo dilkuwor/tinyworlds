@@ -1,8 +1,14 @@
+# Build: bake the homepage, search/share tags and sitemap into the HTML
+FROM node:22-alpine AS build
+WORKDIR /site
+COPY . .
+RUN node tools/prerender.mjs /site && rm -rf tools
+
 FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 # The whole site is static; .dockerignore keeps build files out of the image
-COPY . /usr/share/nginx/html/
+COPY --from=build /site /usr/share/nginx/html/
 RUN rm -f /usr/share/nginx/html/nginx.conf
 
 # Stamp every local script/stylesheet URL with a per-build version so caches

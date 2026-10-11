@@ -755,42 +755,65 @@ const PREVIEWS = {
 // WORLD SECTIONS
 // ==========================================
 /** A compact row of pills under the hero: one tap straight into any world. */
-function buildWorldNav() {
-  const nav = document.getElementById('world-nav');
-  if (!nav) return;
-  TINY_WORLDS.forEach((world) => {
-    const a = document.createElement('a');
-    a.className = 'world-pill';
-    a.href = `/${world.slug}/`;
-    a.style.setProperty('--accent', world.accent);
-    a.innerHTML = `<span class="pill-icon" aria-hidden="true">${world.icon}</span><span class="pill-label">${world.title}</span>`;
-    nav.appendChild(a);
+/**
+ * The shelf under the hero: one small window per world. Each shows a still
+ * snapshot; on hover (with a mouse) the real preview starts up over it.
+ */
+function buildShelf() {
+  const list = document.getElementById('shelf-list');
+  if (!list) return;
+  if (!list.children.length) list.innerHTML = TINY_WORLDS.map(twShelfItem).join('');
+
+  const live = [];
+  const canHover = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  list.querySelectorAll('.shelf-item').forEach((item) => {
+    const img = item.querySelector('img');
+    // Retry a failed snapshot once; if it still fails, the accent gradient shows instead
+    img?.addEventListener('error', () => {
+      if (img.dataset.retried) { img.remove(); return; }
+      img.dataset.retried = '1';
+      setTimeout(() => { img.src = `${img.src.split('?')[0]}?retry=1`; }, 800);
+    });
+    if (!canHover || reduceMotion) return;
+    const world = TINY_WORLDS.find(w => w.slug === item.dataset.slug);
+    const make = world && PREVIEWS[world.preview];
+    if (!make) return;
+    const entry = { canvas: item.querySelector('canvas'), preview: null, active: false };
+    item.addEventListener('pointerenter', () => {
+      try {
+        if (!entry.preview) {
+          entry.preview = make(entry.canvas);
+          entry.preview.layout();
+          live.push(entry);
+        }
+        entry.active = true;
+        item.classList.add('live');
+      } catch (e) {
+        console.warn(`Shelf preview for "${world.slug}" unavailable:`, e);
+      }
+    });
+    item.addEventListener('pointerleave', () => {
+      entry.active = false;
+      item.classList.remove('live');
+    });
   });
+
+  window.addEventListener('resize', () => live.forEach(en => { try { en.preview.layout(); } catch (_) {} }));
+  startLoop((dt) => live.forEach(en => {
+    if (!en.active) return;
+    try { en.preview.frame(null, dt); } catch (_) { en.active = false; }
+  }));
 }
 
 function buildWorlds() {
   const list = document.getElementById('world-list');
   const previews = [];
+  // The build writes these sections into the page; build them here only if it didn't
+  if (!list.children.length) list.innerHTML = TINY_WORLDS.map(twWorldSection).join('');
 
-  TINY_WORLDS.forEach((world, i) => {
-    const el = document.createElement('article');
-    el.className = 'world reveal';
-    el.style.setProperty('--accent', world.accent);
-    const href = `/${world.slug}/`;
-    el.innerHTML = `
-      <div class="world-window-wrap">
-        <a class="world-window" href="${href}" aria-label="Open ${world.title}">
-          <canvas aria-hidden="true"></canvas>
-        </a>
-      </div>
-      <div class="world-copy">
-        <span class="world-index">${String(i + 1).padStart(2, '0')}</span>
-        <h3 class="world-name">${world.title}</h3>
-        <p class="world-lede">${world.lede}</p>
-        <ul class="world-chips">${world.actions.map(a => `<li>${a}</li>`).join('')}</ul>
-        <a class="world-cta" href="${href}">${world.cta} <span class="arrow" aria-hidden="true">→</span></a>
-      </div>`;
-    list.appendChild(el);
+  list.querySelectorAll('.world').forEach((el) => {
+    const world = TINY_WORLDS.find(w => w.slug === el.dataset.slug);
+    if (!world) return;
 
     const win = el.querySelector('.world-window');
     const canvas = el.querySelector('canvas');
@@ -871,7 +894,7 @@ function setupReveal() {
 window.addEventListener('DOMContentLoaded', () => {
   Theme.init();
   setupHomeSound();
-  buildWorldNav();
+  buildShelf();
   startHero();
   runPreviews(buildWorlds());
   setupReveal();

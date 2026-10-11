@@ -2,6 +2,8 @@
  * scenes.js - The list of Tiny Worlds shown on the landing page.
  * Adding a world: create its folder (e.g. /fireflies/index.html), add one
  * entry here, and (optionally) a preview renderer in landing.js.
+ * `description` is the one-line summary used for search results and link
+ * previews (the build writes it into each page's <head>).
  */
 const TINY_WORLDS = [
   {
@@ -9,6 +11,7 @@ const TINY_WORLDS = [
     title: 'Aquarium',
     icon: '🐠',
     lede: 'A little reef behind glass. Clownfish weave through the kelp, jellyfish drift in slow pulses, and a turtle passes by now and then.',
+    description: 'A calm living aquarium in your browser. Feed the fish, add a turtle or jellyfish, and watch the reef drift from day into deep night.',
     actions: ['Drop food', 'Shift the light', 'Add a creature'],
     cta: 'Dive in',
     accent: '56, 189, 248',
@@ -19,6 +22,7 @@ const TINY_WORLDS = [
     title: 'Ragdoll Cat',
     icon: '🐈',
     lede: 'A fluffy, floppy companion in a sunny room. It watches you, stalks a laser dot, pounces on yarn, and purrs when you stroke it.',
+    description: 'A fluffy Ragdoll cat in a sunny room. Pet it until it purrs, toss treats, play with yarn or a laser dot, and watch it nap.',
     actions: ['Pet it slowly', 'Toss a treat', 'Play with yarn'],
     cta: 'Say hello',
     accent: '255, 178, 122',
@@ -29,6 +33,7 @@ const TINY_WORLDS = [
     title: 'Rain on the Glass',
     icon: '🌧️',
     lede: 'A misty window over a soft-focus city. Drops gather, stall and slide in little rivers. Wipe a space to look out, and watch the glass fog over again.',
+    description: 'Rain running down a misty window at night. Wipe the fog with your finger, watch the drops race and merge, and listen to the storm.',
     actions: ['Wipe the fog', 'Change the rain', 'Wait for thunder'],
     cta: 'Look outside',
     accent: '169, 196, 224',
@@ -39,6 +44,7 @@ const TINY_WORLDS = [
     title: 'The Feeder',
     icon: '🐦',
     lede: 'A garden feeder outside the window. Scatter seed and see who comes: sparrows and finches, a bold chickadee, now and then a cardinal. Move gently, or the whole flock bursts away.',
+    description: 'A garden bird feeder. Scatter seed and watch sparrows, finches, chickadees, cardinals and blue jays drop in to eat.',
     actions: ['Scatter seed', 'Spot every species', 'Try not to startle them'],
     cta: 'Watch the birds',
     accent: '185, 224, 138',
@@ -49,6 +55,7 @@ const TINY_WORLDS = [
     title: 'Night Meadow',
     icon: '✨',
     lede: 'Tall grass under the stars and a pond holding the moon. Fireflies blink on their own clocks, until, left in peace, the whole meadow slowly learns to blink as one.',
+    description: 'A meadow at night full of fireflies. Hold still to gather them, call them with a lantern, and wait for them to blink in sync.',
     actions: ['Hold still to gather them', 'Call with a lantern', 'Wait for the rhythm'],
     cta: 'Step into the night',
     accent: '232, 245, 154',
@@ -59,6 +66,7 @@ const TINY_WORLDS = [
     title: 'Night Train',
     icon: '🚆',
     lede: 'A window seat after dark. Hills and village lights drift, telegraph poles flash past, a tunnel swallows the view and a station glides by. The one you leave running.',
+    description: 'A window seat on a night train. Watch countryside, coast, snow and city lights roll past, and sound the horn.',
     actions: ['Just watch', 'Change the route', 'Sound the horn'],
     cta: 'Take a seat',
     accent: '242, 196, 138',
@@ -69,6 +77,7 @@ const TINY_WORLDS = [
     title: 'The Greenhouse',
     icon: '🪴',
     lede: 'Seven plants under painted glass, living on real time. Aim the can and watch a droopy plant slowly lift. They only grow while their soil is moist, so come back tomorrow to see what unfurled.',
+    description: 'A small greenhouse that grows in real time. Water and mist seven plants, then come back tomorrow to see what grew while you were away.',
     actions: ['Aim the watering can', 'Mist the leaves', 'Come back tomorrow'],
     cta: 'Step inside',
     accent: '114, 195, 102',
@@ -79,6 +88,7 @@ const TINY_WORLDS = [
     title: 'The Snow Globe',
     icon: '❄️',
     lede: 'A glass globe on a wooden music box, with a little snowy village inside. Shake it, wind the key, and watch the snow settle on the cottage roof while the toy train goes round.',
+    description: 'Shake a snow globe and watch the snow settle on a little village. Wind the music box and the toy train runs until it winds down.',
     actions: ['Shake it', 'Wind the music box', 'Tap the cottage lights'],
     cta: 'Pick it up',
     accent: '170, 205, 240',
@@ -89,6 +99,7 @@ const TINY_WORLDS = [
     title: 'The Shoreline',
     icon: '🌊',
     lede: 'A quiet beach seen from above. Write something near the water and watch the next wave soften it and the one after take it away. Waves leave shells behind, and a small crab minds its own business.',
+    description: 'Write something in the sand and watch the waves take it away. Collect the shells they leave, and listen to the surf.',
     actions: ['Write in the sand', 'Collect shells', 'Call a big wave'],
     cta: 'Walk down',
     accent: '127, 214, 204',
@@ -99,6 +110,7 @@ const TINY_WORLDS = [
     title: 'The Desk',
     icon: '🕯️',
     lede: 'A desk at night with rain on the window and a lamp\'s warm circle of light. Everything on it is a small doorway: the fish tank, a jar of fireflies, a sleeping cat, a train ticket. Pick one and step inside.',
+    description: 'A cozy desk at night where every object is a doorway: a fish tank, a jar of fireflies, a sleeping cat, a snow globe. Pick one and step inside.',
     actions: ['Hover the objects', 'Switch off the lamp', 'Step into any world'],
     cta: 'Sit down',
     accent: '242, 196, 138',

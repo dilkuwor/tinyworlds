@@ -29,8 +29,12 @@ Pages use absolute paths (`/shared/...`), so serve the repository root rather th
 ## Project layout
 
 ```
-index.html, landing.css, landing.js   Landing page with live previews of each world
-scenes.js                             The list of worlds shown on the landing page
+index.html, landing.css, landing.js   Landing page: the shelf, then a live preview of each world
+scenes.js                             The list of worlds (title, copy, search description, accent)
+render.js                             Homepage markup for the shelf and world sections
+tools/prerender.mjs                   Build step: writes that markup, search/share tags and sitemap.xml into the HTML
+og/<slug>.jpg                         1200×630 share images, also used as the shelf snapshots
+robots.txt
 shared/
   ui.css      Glass UI: brand pill, stats pill, single-row collapsible toolbar, guide modal
   shell.js    Toolbar collapse (T), idle fade, hint banner, dropdowns, guide (?), fullscreen (F), Esc
@@ -46,8 +50,12 @@ cat/          The Ragdoll world: cat.js (poses + rendering), room.js, toys.js, s
    `/shared/canvas.js`, `/shared/audio.js` and `/shared/shell.js`, and reuses the shared markup
    (`#world`, `.top-nav`, `#toolbar-container`, `#toolbar-handle`, `#hint-banner`, `#help-modal`).
    Call `Shell.init({ storageKey: 'tinyworlds.fireflies' })` on load.
-2. Add an entry to `scenes.js`. Optionally add a preview renderer to `PREVIEWS` in `landing.js`.
-3. Commit and push. The Docker image copies the whole site, so no Dockerfile change is needed.
+2. Add an entry to `scenes.js`, including a one-line `description` (it becomes the search result
+   text and link-preview text). Optionally add a preview renderer to `PREVIEWS` in `landing.js`.
+3. Add `og/<slug>.jpg` (1200×630): a still of the world, used for link previews and on the shelf.
+   The easiest way is to render the world's homepage preview into a 1200×630 canvas and save it.
+4. Commit and push. The build fills in the homepage, the `<head>` tags and the sitemap, so no
+   Dockerfile change is needed.
 
 ## Shared shortcuts
 
@@ -64,3 +72,9 @@ The UI and cursor fade after a few idle seconds so only the world remains.
 
 `Dockerfile` serves the site with nginx on port 80. It is set up for Dockyard: pushes to `main`
 build the image and redeploy through the generated GitHub Actions workflow.
+
+The image build first runs `tools/prerender.mjs` (in a Node stage), so the homepage arrives with
+every world already in the HTML and each page carries its description, canonical URL, Open Graph /
+Twitter tags (and structured data on the homepage). Locally, without that step, `landing.js` builds
+the same markup from `render.js`, so the page looks the same. To see the built output:
+`node tools/prerender.mjs <copy-of-the-site>`.

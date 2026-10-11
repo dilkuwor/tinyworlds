@@ -318,61 +318,133 @@ body {
   transform: translateY(2px);
 }
 
-/* Quick jump row under the hero */
-.world-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  max-width: 44rem;
-  margin: 26px auto 0;
-  animation: rise 1.4s 0.65s var(--ease) both;
+/* ---------- The shelf: every world at a glance ---------- */
+.shelf {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: clamp(64px, 9vw, 110px) 24px 0;
 }
 
-.world-pill {
+.shelf-head {
+  text-align: center;
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+
+.shelf-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  letter-spacing: -0.01em;
+}
+
+.shelf-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(190px, 42vw), 1fr));
+  gap: 30px 22px;
+}
+
+.shelf-item {
   --accent: 200, 210, 230;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 13px 7px 10px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 500;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 14px;
   color: var(--ink);
   text-decoration: none;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform 0.35s var(--ease), border-color 0.35s var(--ease), background 0.35s var(--ease), box-shadow 0.35s var(--ease);
-}
-
-.world-pill:hover,
-.world-pill:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(var(--accent), 0.7);
-  background: rgba(var(--accent), 0.16);
-  box-shadow: 0 6px 24px rgba(var(--accent), 0.22);
   outline: none;
 }
 
-.world-pill:focus-visible {
-  box-shadow: 0 0 0 2px rgba(var(--accent), 0.9);
+/* A wooden ledge under each window; neighbours join into one long shelf */
+.shelf-item::after {
+  content: "";
+  position: absolute;
+  left: -11px;
+  right: -11px;
+  bottom: 0;
+  height: 7px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #a87a52 0%, #7a5233 60%, #5a3a22 100%);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
 }
 
-.pill-icon {
+:root[data-theme="light"] .shelf-item::after {
+  background: linear-gradient(180deg, #d2aa80 0%, #b08058 60%, #8d6340 100%);
+  box-shadow: 0 6px 12px rgba(70, 50, 30, 0.15);
+}
+
+.shelf-window {
+  position: relative;
+  display: block;
+  aspect-ratio: 1200 / 630;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--window-border);
+  background: linear-gradient(135deg, rgba(var(--accent), 0.35), rgba(var(--accent), 0.08));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease), border-color 0.45s var(--ease);
+}
+
+.shelf-window img,
+.shelf-window canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shelf-window canvas {
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+
+.shelf-item.live .shelf-window canvas {
+  opacity: 1;
+}
+
+.shelf-item:hover .shelf-window,
+.shelf-item:focus-visible .shelf-window {
+  transform: translateY(-5px);
+  border-color: rgba(var(--accent), 0.65);
+  box-shadow: 0 16px 34px rgba(var(--accent), 0.28);
+}
+
+.shelf-item:focus-visible .shelf-window {
+  box-shadow: 0 0 0 2px rgba(var(--accent), 0.95);
+}
+
+.shelf-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: color 0.3s var(--ease);
+}
+
+.shelf-item:hover .shelf-label,
+.shelf-item:focus-visible .shelf-label {
+  color: var(--ink);
+}
+
+.shelf-icon {
   font-size: 1rem;
   line-height: 1;
 }
 
 @media (max-width: 520px) {
-  .world-nav {
-    gap: 6px;
-    margin-top: 20px;
+  .shelf-list {
+    gap: 22px 14px;
   }
-  .world-pill {
-    padding: 6px 10px 6px 8px;
-    font-size: 0.76rem;
+  .shelf-item::after {
+    left: -7px;
+    right: -7px;
+  }
+  .shelf-label {
+    font-size: 0.78rem;
   }
 }
 

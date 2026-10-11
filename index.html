@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Tiny Worlds · Small living worlds to rest your eyes on</title>
-  <meta name="description" content="A collection of calm, interactive living scenes: an aquarium, a Ragdoll cat, and more tiny worlds to come.">
+  <meta name="description" content="Calm, interactive little worlds to rest your eyes on: an aquarium, a Ragdoll cat, rain on the glass, a snow globe, a quiet beach and more.">
   <meta name="theme-color" content="#0b0a24">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>">
   <script>
@@ -17,6 +17,8 @@
     })();
   </script>
   <link rel="stylesheet" href="/landing.css">
+  <!-- Without JavaScript, show everything rather than waiting to reveal it -->
+  <noscript><style>.reveal, .world.reveal .world-copy { opacity: 1 !important; transform: none !important; }</style></noscript>
 </head>
 <body>
   <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to day theme" title="Day theme">
@@ -39,16 +41,24 @@
       <p class="eyebrow">A collection of calm, living scenes</p>
       <h1 class="wordmark">Tiny Worlds</h1>
       <p class="tagline">Small living worlds to rest your eyes on.<br>No goals, no scores. Just somewhere quiet to look for a while.</p>
-      <a class="hero-cta" href="#worlds">
+      <a class="hero-cta" href="#shelf">
         See the worlds
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </a>
-      <nav id="world-nav" class="world-nav" aria-label="Go straight to a world"></nav>
     </div>
     <div class="scroll-cue" aria-hidden="true"><span></span></div>
   </header>
 
   <main>
+    <!-- The shelf: every world at a glance (the build fills it in) -->
+    <section class="shelf" id="shelf" aria-labelledby="shelf-title">
+      <div class="shelf-head reveal">
+        <p class="eyebrow">All the worlds</p>
+        <h2 id="shelf-title" class="shelf-title">Pick one from the shelf</h2>
+      </div>
+      <nav id="shelf-list" class="shelf-list" aria-label="All the worlds"></nav>
+    </section>
+
     <section class="worlds" id="worlds" aria-labelledby="worlds-title">
       <div class="section-head reveal">
         <p class="eyebrow">The worlds</p>
@@ -90,6 +100,7 @@
   <script src="/snowglobe/globe.js"></script>
   <script src="/shoreline/beach.js"></script>
   <script src="/scenes.js"></script>
+  <script src="/render.js"></script>
   <script src="/landing.js"></script>
 </body>
 </html>
