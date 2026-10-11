@@ -1137,11 +1137,11 @@ function startHero() {
     // Lamplight spilling out of the windows
     const glow = lamp.k * (0.35 + 0.65 * n);
     if (glow > 0.01) {
-      const g = ctx.createRadialGradient(-13, -12, 1, -13, -12, 36);
+      const g = ctx.createRadialGradient(-2, -12, 1, -2, -12, 44);
       g.addColorStop(0, `rgba(255, 200, 120, ${(0.45 * flicker * glow).toFixed(3)})`);
       g.addColorStop(1, 'rgba(255, 200, 120, 0)');
       ctx.fillStyle = g;
-      ctx.fillRect(-52, -50, 90, 76);
+      ctx.fillRect(-50, -58, 96, 84);
     }
 
     // A round bush by the long wall
@@ -1149,16 +1149,17 @@ function startHero() {
     dot('#5f8f62', -27.5, -5.5, 4.2);
     dot('#6e9e68', -29, -7.5, 3.2);
 
-    // The house is seen straight on, so every roof angle is honest: a long
-    // main block under a hipped roof, and a sunlit wing on the right whose
-    // gable faces us, with the door beneath it and a round window in the peak.
+    // The house is seen straight on and built symmetrically, so every roof
+    // angle is honest: a hipped roof over the long wall, and a gable in the
+    // middle of it facing us, with the door beneath and a round window in
+    // the peak. The gable's rakes run parallel to its wall edges and the tile
+    // band straddles the join, so no stray roof shows through beside it.
     // Walls and a stone plinth
-    rect('#efe3cf', -26, -22, 36, 22);
-    rect('#d8c8ae', -26, -2, 36, 2);
+    rect('#efe3cf', -26, -22, 48, 22);
+    rect('#d8c8ae', -26, -2, 48, 2);
 
-    // The main roof: terracotta tiles, hipped at the left end, its ridge
-    // running right into the peak of the gable so the two roofs meet cleanly
-    const E0 = [-30, -20], E1 = [25, -20], R0 = [-22, -40], R1 = [13, -40];
+    // The main roof: terracotta tiles, hipped at both ends, with a ridge cap
+    const E0 = [-30, -20], E1 = [26, -20], R0 = [-20, -40], R1 = [16, -40];
     poly('#c4704f', [E0, E1, R1, R0]);
     ctx.strokeStyle = c('#a85a3d');
     ctx.lineWidth = 0.7;
@@ -1183,39 +1184,43 @@ function startHero() {
     ctx.lineTo(E1[0], E1[1] + 0.4);
     ctx.stroke();
 
-    // Brick chimney with a cap, straddling the ridge
-    rect('#a65b3f', -16, -49, 6, 12);
-    rect('#7b3f2b', -17, -50.5, 8, 2.2);
+    // Brick chimney with a cap, straddling the ridge toward the right end
+    rect('#a65b3f', 9, -49, 6, 12);
+    rect('#7b3f2b', 8, -50.5, 8, 2.2);
     ctx.strokeStyle = c('#8d4a33');
     ctx.lineWidth = 0.5;
     ctx.beginPath();
-    for (const yy of [-46, -43, -40]) { ctx.moveTo(-16, yy); ctx.lineTo(-10, yy); }
+    for (const yy of [-46, -43, -40]) { ctx.moveTo(9, yy); ctx.lineTo(15, yy); }
     ctx.stroke();
 
-    // The gabled wing: its wall and peak, then the roof edge over it, a thick
-    // band of tiles ending in pale fascia boards along both rakes
-    const G0 = [4, -22], G1 = [22, -22], GP = [13, -37.5];
-    poly('#fbf4e7', [[4, 0], G0, GP, G1, [22, 0]]);
-    rect('#e6d8c0', 4, -2, 18, 2);
-    const rake = (o) => [[1 - o * 0.2, -20 - o * 1.2], [13, -40 - o * 1.2], [25 + o * 0.2, -20 - o * 1.2]];
-    const [ra, rb, rc] = rake(0), [ta, tb, tc] = rake(2.2);
-    poly('#c4704f', [ra, rb, rc, tc, tb, ta]);
+    // The front gable: its sunlit wall rising to a peak, then the roof edge
+    // over it, a thick band of tiles with pale fascia boards along both rakes
+    const gx = -2, gw = 9, gh = 15; // centre, half-width, rise of the gable wall
+    poly('#fbf4e7', [[gx - gw, 0], [gx - gw, -22], [gx, -22 - gh], [gx + gw, -22], [gx + gw, 0]]);
+    rect('#e6d8c0', gx - gw, -2, gw * 2, 2);
+    // Rakes run parallel to the wall's edges, o units out from them
+    const rake = (o) => {
+      const k = Math.hypot(gw, gh), nx = (gh / k) * o, ny = (gw / k) * o; // outward normal
+      return [[gx - gw - 3 - nx, -22 + 3 * (gh / gw) - ny], [gx, -22 - gh - o * (k / gw)], [gx + gw + 3 + nx, -22 + 3 * (gh / gw) - ny]];
+    };
+    const [ia, ib, ic] = rake(-1.2), [oa, ob, oc] = rake(2.2), [fa, fb, fc] = rake(0.2);
+    poly('#c4704f', [ia, ib, ic, oc, ob, oa]);
     ctx.strokeStyle = c('#9a4f35');
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(ta[0], ta[1]);
-    ctx.lineTo(tb[0], tb[1]);
-    ctx.lineTo(tc[0], tc[1]);
+    ctx.moveTo(oa[0], oa[1]);
+    ctx.lineTo(ob[0], ob[1]);
+    ctx.lineTo(oc[0], oc[1]);
     ctx.stroke();
     ctx.strokeStyle = c('#b9a587');
     ctx.lineWidth = 0.9;
     ctx.beginPath();
-    ctx.moveTo(ra[0], ra[1]);
-    ctx.lineTo(rb[0], rb[1]);
-    ctx.lineTo(rc[0], rc[1]);
+    ctx.moveTo(fa[0], fa[1]);
+    ctx.lineTo(fb[0], fb[1]);
+    ctx.lineTo(fc[0], fc[1]);
     ctx.stroke();
 
-    // Windows: framed panes, lit by the lamp
+    // Windows: framed panes, lit by the lamp, a flower box under each
     const pane = (x0, y0, wd, ht) => {
       rect('#ffffff', x0 - 1, y0 - 1, wd + 2, ht + 2);
       ctx.fillStyle = mixHex('#2a2556', '#7aa6c9', u);
@@ -1227,17 +1232,16 @@ function startHero() {
       rect('#ffffff', x0 + wd / 2 - 0.4, y0, 0.8, ht);
       rect('#ffffff', x0, y0 + ht / 2 - 0.4, wd, 0.8);
     };
-    pane(-19, -16, 9, 8);
-    // Flower box under it
-    rect('#8a5a3c', -20.5, -7.2, 12, 2.4);
-    for (const [fx, col] of [[-19, '#f2a7c3'], [-16.5, '#f6d365'], [-14, '#e8798f'], [-11.5, '#f2a7c3']]) dot(col, fx, -8.2, 1.1);
-    // A smaller window on the wing beside the door
-    pane(17, -15, 4, 5);
+    for (const wx of [-22, 10]) {
+      pane(wx, -16, 9, 8);
+      rect('#8a5a3c', wx - 1.5, -7.2, 12, 2.4);
+      for (const [fx, col] of [[wx + 1, '#f2a7c3'], [wx + 3.5, '#f6d365'], [wx + 6, '#e8798f'], [wx + 8.5, '#f2a7c3']]) dot(col, fx, -8.2, 1.1);
+    }
     // A round attic window up in the peak
-    dot('#ffffff', 13, -28.5, 2.6);
+    dot('#ffffff', gx, -28.5, 2.6);
     ctx.fillStyle = mixHex('#2a2556', '#7aa6c9', u);
     ctx.beginPath();
-    ctx.arc(13, -28.5, 1.9, 0, 6.283);
+    ctx.arc(gx, -28.5, 1.9, 0, 6.283);
     ctx.fill();
     ctx.globalAlpha = lamp.k;
     ctx.fillStyle = 'rgb(255, 214, 150)';
@@ -1247,26 +1251,26 @@ function startHero() {
     // An arched wooden door with a knob, and a stepping stone
     ctx.fillStyle = c('#8a5a3c');
     ctx.beginPath();
-    ctx.moveTo(7, 0);
-    ctx.lineTo(7, -9);
-    ctx.arc(10, -9, 3, Math.PI, 0);
-    ctx.lineTo(13, 0);
+    ctx.moveTo(gx - 3, 0);
+    ctx.lineTo(gx - 3, -9);
+    ctx.arc(gx, -9, 3, Math.PI, 0);
+    ctx.lineTo(gx + 3, 0);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = c('#6e4630');
     ctx.lineWidth = 0.5;
     ctx.beginPath();
-    ctx.moveTo(10, -12);
-    ctx.lineTo(10, 0);
+    ctx.moveTo(gx, -12);
+    ctx.lineTo(gx, 0);
     ctx.stroke();
-    dot('#e8c46a', 12, -5, 0.6);
-    rect('#cfc6b8', 6, 0, 8, 1.4);
+    dot('#e8c46a', gx + 2, -5, 0.6);
+    rect('#cfc6b8', gx - 4, 0, 8, 1.4);
 
     // A bit of white picket fence
     ctx.fillStyle = c('#f4ece0');
-    ctx.fillRect(27, -5.2, 13, 1);
-    ctx.fillRect(27, -2.6, 13, 1);
-    for (let px = 28; px <= 39; px += 3) {
+    ctx.fillRect(30, -5.2, 13, 1);
+    ctx.fillRect(30, -2.6, 13, 1);
+    for (let px = 31; px <= 42; px += 3) {
       ctx.beginPath();
       ctx.moveTo(px - 0.8, 0.5);
       ctx.lineTo(px - 0.8, -6.5);
@@ -1638,7 +1642,7 @@ function startHero() {
         const cy = hillY(cx, base, Ly.amp, Ly.freq, Ly.seed, off);
         const s = sc;
         cottage = { x: cx, y: cy + 4, s };
-        chimney = { x: cx - 13 * s, y: cy + 4 - 50.5 * s };
+        chimney = { x: cx + 12 * s, y: cy + 4 - 50.5 * s };
         ground = x => hillY(x, base, Ly.amp, Ly.freq, Ly.seed, off);
         drawPond(ground, s, u, n);
         drawCottage(cx, cy + 4, s, u, n);
@@ -1703,7 +1707,7 @@ function startHero() {
     // (the path is tested in device pixels, so scale the point to match)
     const dpr = canvas.width / w;
     if (pond && ctx.isPointInPath(pond.shape, x * dpr, y * dpr)) return 'pond';
-    if (cottage && x > cottage.x - 33 * cottage.s && x < cottage.x + 27 * cottage.s && y > cottage.y - 52 * cottage.s && y < cottage.y + 4 * cottage.s) return 'cottage';
+    if (cottage && x > cottage.x - 33 * cottage.s && x < cottage.x + 30 * cottage.s && y > cottage.y - 52 * cottage.s && y < cottage.y + 4 * cottage.s) return 'cottage';
     const k = pines.findIndex(p => Math.abs(x - p.x) < p.th * 0.48 && y < p.y + 2 && y > p.y - p.th);
     return k >= 0 ? k : null;
   };
