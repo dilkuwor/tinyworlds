@@ -565,6 +565,10 @@ body {
   gap: clamp(36px, 6vw, 80px);
 }
 
+.world:nth-child(even) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+}
+
 .world:nth-child(even) .world-window-wrap {
   order: 2;
 }
@@ -865,7 +869,8 @@ kbd {
 }
 
 @media (max-width: 820px) {
-  .world {
+  .world,
+  .world:nth-child(even) {
     grid-template-columns: 1fr;
     gap: 30px;
   }
