@@ -22,7 +22,7 @@ function twEscape(s) {
 function twShelfItem(world) {
   const e = twEscape;
   return `<a class="shelf-item" href="/${e(world.slug)}/" data-slug="${e(world.slug)}" style="--accent: ${e(world.accent)}">` +
-    `<span class="shelf-window"><img src="/og/${e(world.slug)}.jpg" alt="" width="1200" height="630" loading="lazy" decoding="async"><canvas aria-hidden="true"></canvas></span>` +
+    `<span class="shelf-window"><img src="/og/${e(world.slug)}.jpg" alt="" width="1200" height="630" loading="lazy" decoding="async"><canvas aria-hidden="true"></canvas></span><span class="shelf-plank" aria-hidden="true"></span>` +
     `<span class="shelf-label"><span class="shelf-icon" aria-hidden="true">${world.icon}</span>${e(world.title)}</span>` +
     `</a>`;
 }

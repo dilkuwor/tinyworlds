@@ -754,7 +754,6 @@ const PREVIEWS = {
 // ==========================================
 // WORLD SECTIONS
 // ==========================================
-/** A compact row of pills under the hero: one tap straight into any world. */
 /**
  * The shelf under the hero: one small window per world. Each shows a still
  * snapshot; on hover (with a mouse) the real preview starts up over it.

@@ -338,51 +338,55 @@ body {
 }
 
 .shelf-list {
+  --cols: 5;
+  --wood-top: #b8875c;
+  --wood-front: linear-gradient(180deg, #8a5d3b 0%, #6e4a2e 55%, #573822 100%);
+  --frame: #2a2238;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(190px, 42vw), 1fr));
-  gap: 30px 22px;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  row-gap: clamp(30px, 4vw, 44px);
 }
 
+:root[data-theme="light"] .shelf-list {
+  --wood-top: #e3c29b;
+  --wood-front: linear-gradient(180deg, #c99d70 0%, #b3845a 55%, #9a6d47 100%);
+  --frame: #fffaf2;
+}
+
+/* Each item spans its whole cell, so the planks of a row meet edge to edge */
 .shelf-item {
   --accent: 200, 210, 230;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-bottom: 14px;
+  align-items: center;
   color: var(--ink);
   text-decoration: none;
   outline: none;
 }
 
-/* A wooden ledge under each window; neighbours join into one long shelf */
-.shelf-item::after {
-  content: "";
-  position: absolute;
-  left: -11px;
-  right: -11px;
-  bottom: 0;
-  height: 7px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #a87a52 0%, #7a5233 60%, #5a3a22 100%);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
-}
-
-:root[data-theme="light"] .shelf-item::after {
-  background: linear-gradient(180deg, #d2aa80 0%, #b08058 60%, #8d6340 100%);
-  box-shadow: 0 6px 12px rgba(70, 50, 30, 0.15);
-}
-
+/* The window stands on the plank, a little narrower than its cell */
 .shelf-window {
   position: relative;
+  z-index: 1;
   display: block;
-  aspect-ratio: 1200 / 630;
-  border-radius: 12px;
+  width: calc(100% - clamp(18px, 2.4vw, 30px));
+  aspect-ratio: 4 / 3;
+  border: clamp(4px, 0.5vw, 6px) solid var(--frame);
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--window-border);
   background: linear-gradient(135deg, rgba(var(--accent), 0.35), rgba(var(--accent), 0.08));
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
-  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease), border-color 0.45s var(--ease);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.18),
+    0 12px 18px -10px rgba(0, 0, 0, 0.55);
+  transform-origin: 50% 100%;
+  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease);
+}
+
+:root[data-theme="light"] .shelf-window {
+  box-shadow:
+    0 1px 0 rgba(90, 60, 30, 0.12),
+    0 12px 18px -10px rgba(90, 60, 30, 0.45);
 }
 
 .shelf-window img,
@@ -405,22 +409,56 @@ body {
 
 .shelf-item:hover .shelf-window,
 .shelf-item:focus-visible .shelf-window {
-  transform: translateY(-5px);
-  border-color: rgba(var(--accent), 0.65);
-  box-shadow: 0 16px 34px rgba(var(--accent), 0.28);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow:
+    0 0 0 1px rgba(var(--accent), 0.5),
+    0 22px 30px -14px rgba(var(--accent), 0.55);
 }
 
 .shelf-item:focus-visible .shelf-window {
-  box-shadow: 0 0 0 2px rgba(var(--accent), 0.95);
+  box-shadow: 0 0 0 3px rgba(var(--accent), 0.95);
 }
+
+/* The plank: a lit top face and a darker front edge */
+.shelf-plank {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 14px;
+  margin-top: -2px;
+  background: var(--wood-front);
+  box-shadow: 0 10px 14px -6px rgba(0, 0, 0, 0.4);
+}
+
+.shelf-plank::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: var(--wood-top);
+}
+
+:root[data-theme="light"] .shelf-plank {
+  box-shadow: 0 10px 14px -6px rgba(90, 60, 30, 0.3);
+}
+
+/* Round the ends of each row's plank */
+.shelf-item:nth-child(5n + 1) .shelf-plank { border-radius: 3px 0 0 3px; }
+.shelf-item:nth-child(5n) .shelf-plank,
+.shelf-item:last-child .shelf-plank { border-radius: 0 3px 3px 0; }
 
 .shelf-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  font-size: 0.86rem;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 0 6px;
+  font-size: 0.84rem;
   font-weight: 500;
+  text-align: center;
   color: var(--ink-soft);
   transition: color 0.3s var(--ease);
 }
@@ -431,21 +469,33 @@ body {
 }
 
 .shelf-icon {
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1;
 }
 
-@media (max-width: 520px) {
-  .shelf-list {
-    gap: 22px 14px;
-  }
-  .shelf-item::after {
-    left: -7px;
-    right: -7px;
-  }
-  .shelf-label {
-    font-size: 0.78rem;
-  }
+@media (max-width: 940px) {
+  .shelf-list { --cols: 4; }
+  .shelf-item:nth-child(n) .shelf-plank { border-radius: 0; }
+  .shelf-item:nth-child(4n + 1) .shelf-plank { border-radius: 3px 0 0 3px; }
+  .shelf-item:nth-child(4n) .shelf-plank,
+  .shelf-item:last-child .shelf-plank { border-radius: 0 3px 3px 0; }
+}
+
+@media (max-width: 720px) {
+  .shelf-list { --cols: 3; }
+  .shelf-item:nth-child(n) .shelf-plank { border-radius: 0; }
+  .shelf-item:nth-child(3n + 1) .shelf-plank { border-radius: 3px 0 0 3px; }
+  .shelf-item:nth-child(3n) .shelf-plank,
+  .shelf-item:last-child .shelf-plank { border-radius: 0 3px 3px 0; }
+}
+
+@media (max-width: 460px) {
+  .shelf { padding-left: 16px; padding-right: 16px; }
+  .shelf-list { --cols: 2; }
+  .shelf-item:nth-child(n) .shelf-plank { border-radius: 0; }
+  .shelf-item:nth-child(2n + 1) .shelf-plank { border-radius: 3px 0 0 3px; }
+  .shelf-item:nth-child(2n) .shelf-plank { border-radius: 0 3px 3px 0; }
+  .shelf-label { font-size: 0.78rem; }
 }
 
 .scroll-cue {
