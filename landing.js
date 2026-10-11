@@ -680,7 +680,11 @@ function startHero() {
     const cx = -5, cy = -13 + bob, N = 24;
     if (up > 0.05) {
       ctx.globalAlpha = up;
-      ctx.fillStyle = c('#2a6e46');
+      const fg = ctx.createRadialGradient(cx, cy, 2, cx, cy, 30 * up);
+      fg.addColorStop(0, c('#1b4f33'));
+      fg.addColorStop(0.6, c('#276a44'));
+      fg.addColorStop(1, c('#2f7a4d'));
+      ctx.fillStyle = fg;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, 30 * up, Math.PI * 1.08, Math.PI * 1.92);
@@ -704,7 +708,7 @@ function startHero() {
       ctx.moveTo(cx, cy);
       ctx.lineTo(cx + ca * len, cy + sa * len);
       ctx.stroke();
-      ctx.fillStyle = c('#2f8a55');
+      ctx.fillStyle = c(i % 2 ? '#2a7d4e' : '#33905a');
       ctx.beginPath();
       ctx.ellipse(cx + ca * len * 0.7, cy + sa * len * 0.7, len * 0.3, 2 + up * 1.6, a, 0, 6.283);
       ctx.fill();
@@ -740,11 +744,23 @@ function startHero() {
       ctx.stroke();
     }
 
-    // Body and folded wing
-    ctx.fillStyle = c('#1d4fb0');
+    // Body: a plump egg-shaped oval, fullest at the breast and only a little
+    // narrower at the rump, brighter blue along the back than under the belly
+    ctx.save();
+    ctx.translate(0, bob);
+    const bg = ctx.createLinearGradient(0, -18.5, 0, -7.5);
+    bg.addColorStop(0, c('#2a63d4'));
+    bg.addColorStop(1, c('#15367f'));
+    ctx.fillStyle = bg;
     ctx.beginPath();
-    ctx.ellipse(-1, -13 + bob, 8, 5.2, -0.2, 0, 6.283);
+    ctx.moveTo(5.5, -17.2);
+    ctx.bezierCurveTo(9.6, -16.2, 10.2, -9.4, 5, -7.9);
+    ctx.bezierCurveTo(1, -6.9, -6, -7.6, -9, -10.2);
+    ctx.bezierCurveTo(-11.4, -13.2, -7, -17.6, -1, -18.2);
+    ctx.bezierCurveTo(1.5, -18.5, 3.8, -18, 5.5, -17.2);
+    ctx.closePath();
     ctx.fill();
+    ctx.restore();
     if (flying) {
       // The near wing beating: buff coverts, chestnut flight feathers
       const beat = Math.sin(pea.flap);
@@ -762,55 +778,118 @@ function startHero() {
       ctx.fill();
       ctx.restore();
     } else {
-      ctx.fillStyle = c('#b39064');
+      // The folded wing lying along his side: buff, barred with brown
+      ctx.save();
+      ctx.translate(0, bob);
+      ctx.fillStyle = c('#b79468');
       ctx.beginPath();
-      ctx.ellipse(-3, -12.5 + bob, 5.5, 3.2, -0.15, 0, 6.283);
+      ctx.moveTo(3.5, -15.6);
+      ctx.bezierCurveTo(-1, -16.8, -6.5, -15.2, -9.2, -11.2);
+      ctx.bezierCurveTo(-5.5, -10.2, -1.5, -10.2, 2.5, -11.6);
+      ctx.bezierCurveTo(4, -12.6, 4.2, -14.6, 3.5, -15.6);
+      ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = c('#7d5b3a');
+      ctx.lineWidth = 0.45;
+      ctx.beginPath();
+      for (let j = 0; j < 4; j++) {
+        const bx = 1.5 - j * 2.6;
+        ctx.moveTo(bx, -14.6 + j * 0.5);
+        ctx.lineTo(bx - 1.6, -11.6 + j * 0.3);
+      }
+      ctx.stroke();
+      ctx.restore();
     }
 
     // Neck and head; bobbing on the walk, dipping to peck
     // Neck stretched forward in flight
-    let hx = 7 + (12 - 7) * pea.bend - up * 1 + Math.sin(pea.phase * 2) * 0.8 * walking + flying * 3;
-    let hy = -27 + (-5 + 27) * pea.bend + bob + flying * 4;
+    // Pecking, the neck reaches forward over the breast and curves down so
+    // the beak meets the ground, and the head tips to point at it
+    let hx = 7 + (12.5 - 7) * pea.bend - up * 1 + Math.sin(pea.phase * 2) * 0.8 * walking + flying * 3;
+    let hy = -27 + (-3.5 + 27) * pea.bend + bob + flying * 4;
     // Asleep: head drawn down onto his shoulders
     hx += (2 - hx) * pea.sleep;
     hy += (-18 - hy) * pea.sleep;
-    ctx.strokeStyle = c('#2a6fd6');
-    ctx.lineWidth = 3.4;
-    ctx.beginPath();
-    ctx.moveTo(3, -15 + bob);
-    ctx.quadraticCurveTo(6 + pea.bend * 4, -19 + bob + pea.bend * 10, hx, hy);
-    ctx.stroke();
+    // The neck: a tapered S-curve, broad at the shoulders and slim at the
+    // head, with a sheen down its front
+    // Its root stays buried in the shoulders; the curve rises out of the back
+    // before arching forward, so a peck is one smooth arc, not a hinge
+    const n0 = [3 + pea.bend, -15 + bob - pea.bend * 0.5], n1 = [hx, hy];
+    const c1 = [5 + pea.bend * 4, -19 + bob - pea.bend * 2], c2 = [6.5 + pea.bend * 9.5, -23 + bob + pea.bend * 9];
+    // Asleep, the curve shortens into a hunch with the head on the shoulders
+    for (const [cp, k] of [[c1, 0.5], [c2, 0.8]]) { cp[0] += (n1[0] - cp[0]) * pea.sleep * k; cp[1] += (n1[1] - cp[1]) * pea.sleep * k; }
+    const neckAt = (q) => {
+      const r = 1 - q;
+      return [
+        r * r * r * n0[0] + 3 * r * r * q * c1[0] + 3 * r * q * q * c2[0] + q * q * q * n1[0],
+        r * r * r * n0[1] + 3 * r * r * q * c1[1] + 3 * r * q * q * c2[1] + q * q * q * n1[1]
+      ];
+    };
+    const sides = [[], []];
+    for (let j = 0; j <= 10; j++) {
+      const q = j / 10, [px, py] = neckAt(q), [qx, qy] = neckAt(Math.min(1, q + 0.05));
+      const dl = Math.hypot(qx - px, qy - py) || 1, nx = -(qy - py) / dl, ny = (qx - px) / dl;
+      const hw = 2.3 - 1.1 * q;
+      sides[0].push([px + nx * hw, py + ny * hw]);
+      sides[1].push([px - nx * hw, py - ny * hw]);
+    }
     ctx.fillStyle = c('#2a6fd6');
     ctx.beginPath();
-    ctx.arc(hx, hy, 2.2, 0, 6.283);
+    sides[0].forEach(([px, py], j) => (j ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+    for (let j = sides[1].length - 1; j >= 0; j--) ctx.lineTo(sides[1][j][0], sides[1][j][1]);
+    ctx.closePath();
     ctx.fill();
-    ctx.lineWidth = 0.5;
-    for (let j = 0; j < 4; j++) {
-      const ca = -Math.PI / 2 - 0.5 + j * 0.22;
-      const ex = hx - 0.5 + Math.cos(ca) * 4.5, ey = hy - 1.5 + Math.sin(ca) * 4.5;
+    ctx.strokeStyle = c('#58a0f2');
+    ctx.lineWidth = 0.7;
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    sides[1].forEach(([px, py], j) => { const [qx, qy] = [px * 0.8 + neckAt(j / 10)[0] * 0.2, py * 0.8 + neckAt(j / 10)[1] * 0.2]; j ? ctx.lineTo(qx, qy) : ctx.moveTo(qx, qy); });
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // The head: a small oval, white patches above and below the eye, a dark
+    // beak, and the crest of wire-stemmed feathers
+    ctx.save();
+    ctx.translate(hx, hy);
+    ctx.rotate(pea.bend * 0.95);
+    ctx.translate(-hx, -hy);
+    ctx.fillStyle = c('#2a6fd6');
+    ctx.beginPath();
+    ctx.ellipse(hx + 0.2, hy, 2.5, 2, 0.15, 0, 6.283);
+    ctx.fill();
+    ctx.strokeStyle = c('#2a6fd6');
+    ctx.lineWidth = 0.4;
+    for (let j = 0; j < 5; j++) {
+      const ca = -Math.PI / 2 - 0.6 + j * 0.3;
+      const ex = hx - 0.4 + Math.cos(ca) * 5, ey = hy - 1.5 + Math.sin(ca) * 5;
       ctx.beginPath();
       ctx.moveTo(hx - 0.3, hy - 1.8);
       ctx.lineTo(ex, ey);
       ctx.stroke();
+      ctx.fillStyle = c('#1f8f86');
       ctx.beginPath();
-      ctx.arc(ex, ey, 0.7, 0, 6.283);
+      ctx.ellipse(ex, ey, 0.9, 0.6, ca + Math.PI / 2, 0, 6.283);
       ctx.fill();
     }
-    ctx.fillStyle = c('#cbb68f');
+    ctx.fillStyle = c('#4a3f33');
     ctx.beginPath();
-    ctx.moveTo(hx + 1.8, hy - 0.6);
-    ctx.lineTo(hx + 4.3, hy + 0.2);
-    ctx.lineTo(hx + 1.8, hy + 0.8);
+    ctx.moveTo(hx + 2.2, hy - 0.8);
+    ctx.lineTo(hx + 4.6, hy + 0.3);
+    ctx.lineTo(hx + 2.2, hy + 0.7);
+    ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = c('#f2f2f2');
+    ctx.fillStyle = c('#f4f4f4');
     ctx.beginPath();
-    ctx.ellipse(hx + 0.6, hy - 0.3, 1.1, 0.45, 0, 0, 6.283);
+    ctx.ellipse(hx + 0.7, hy - 1.05, 1.3, 0.42, 0.1, 0, 6.283);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(hx + 1, hy + 0.55, 1.1, 0.4, -0.1, 0, 6.283);
     ctx.fill();
     ctx.fillStyle = '#0b0a14';
     ctx.beginPath();
-    ctx.arc(hx + 0.8, hy - 0.3, 0.4, 0, 6.283);
+    ctx.arc(hx + 1, hy - 0.3, 0.42, 0, 6.283);
     ctx.fill();
+    ctx.restore();
 
     ctx.restore();
     ctx.restore();
