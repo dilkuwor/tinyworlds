@@ -585,6 +585,24 @@ function greenhousePreview(canvas) {
   return { layout, frame };
 }
 
+/** The real desk; hovering lifts whatever object is under the pointer. */
+function deskPreview(canvas) {
+  const desk = new DeskWorld(canvas, { preview: true });
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, desk.ctx);
+    desk.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    desk.setHover(pointer ? desk.itemAt(pointer.x, pointer.y) : null);
+    desk.update(dt);
+    desk.draw();
+  };
+
+  return { layout, frame };
+}
+
 const PREVIEWS = {
   aquarium: aquariumPreview,
   cat: catPreview,
@@ -592,12 +610,27 @@ const PREVIEWS = {
   feeder: feederPreview,
   meadow: meadowPreview,
   train: trainPreview,
-  greenhouse: greenhousePreview
+  greenhouse: greenhousePreview,
+  desk: deskPreview
 };
 
 // ==========================================
 // WORLD SECTIONS
 // ==========================================
+/** A compact row of pills under the hero: one tap straight into any world. */
+function buildWorldNav() {
+  const nav = document.getElementById('world-nav');
+  if (!nav) return;
+  TINY_WORLDS.forEach((world) => {
+    const a = document.createElement('a');
+    a.className = 'world-pill';
+    a.href = `/${world.slug}/`;
+    a.style.setProperty('--accent', world.accent);
+    a.innerHTML = `<span class="pill-icon" aria-hidden="true">${world.icon}</span><span class="pill-label">${world.title}</span>`;
+    nav.appendChild(a);
+  });
+}
+
 function buildWorlds() {
   const list = document.getElementById('world-list');
   const previews = [];
@@ -700,6 +733,7 @@ function setupReveal() {
 
 window.addEventListener('DOMContentLoaded', () => {
   Theme.init();
+  buildWorldNav();
   startHero();
   runPreviews(buildWorlds());
   setupReveal();

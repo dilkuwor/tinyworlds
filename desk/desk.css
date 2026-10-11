@@ -1,0 +1,73 @@
+/* The Desk: warm lamplight accent on the shared glass UI */
+:root {
+  --primary-color: #f2c48a;
+  --primary-glow: rgba(242, 196, 138, 0.4);
+  --accent-rgb: 242, 196, 138;
+  --accent2-rgb: 200, 140, 90;
+  --bg-glass: rgba(34, 26, 30, 0.64);
+  --bg-glass-soft: rgba(34, 26, 30, 0.38);
+  --text-main: #f7efe6;
+  --text-muted: #d9c7b8;
+}
+
+html, body {
+  background-color: #2b2433;
+}
+
+#world {
+  cursor: default;
+}
+
+#world.pointing {
+  cursor: pointer;
+}
+
+/* Floating label above the object you're pointing at */
+.desk-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 8;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.desk-label.show {
+  opacity: 1;
+}
+
+/* Links for keyboards and screen readers: invisible until focused */
+.desk-links a {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.active-tool {
+  background: rgba(var(--accent-rgb), 0.28);
+  border-color: rgba(var(--accent-rgb), 0.55);
+}
+
+/* Fade as you step into a world */
+.fade {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: #0b0a14;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.fade.on {
+  opacity: 1;
+}

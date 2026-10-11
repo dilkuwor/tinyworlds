@@ -73,5 +73,15 @@ const TINY_WORLDS = [
     cta: 'Step inside',
     accent: '114, 195, 102',
     preview: 'greenhouse'
+  },
+  {
+    slug: 'desk',
+    title: 'The Desk',
+    icon: '🕯️',
+    lede: 'A desk at night with rain on the window and a lamp\'s warm circle of light. Everything on it is a small doorway: the fish tank, a jar of fireflies, a sleeping cat, a train ticket. Pick one and step inside.',
+    actions: ['Hover the objects', 'Switch off the lamp', 'Step into any world'],
+    cta: 'Sit down',
+    accent: '242, 196, 138',
+    preview: 'desk'
   }
 ];

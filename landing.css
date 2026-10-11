@@ -243,6 +243,64 @@ body {
   transform: translateY(2px);
 }
 
+/* Quick jump row under the hero */
+.world-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 44rem;
+  margin: 26px auto 0;
+  animation: rise 1.4s 0.65s var(--ease) both;
+}
+
+.world-pill {
+  --accent: 200, 210, 230;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px 7px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.35s var(--ease), border-color 0.35s var(--ease), background 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+
+.world-pill:hover,
+.world-pill:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent), 0.7);
+  background: rgba(var(--accent), 0.16);
+  box-shadow: 0 6px 24px rgba(var(--accent), 0.22);
+  outline: none;
+}
+
+.world-pill:focus-visible {
+  box-shadow: 0 0 0 2px rgba(var(--accent), 0.9);
+}
+
+.pill-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+@media (max-width: 520px) {
+  .world-nav {
+    gap: 6px;
+    margin-top: 20px;
+  }
+  .world-pill {
+    padding: 6px 10px 6px 8px;
+    font-size: 0.76rem;
+  }
+}
+
 .scroll-cue {
   position: absolute;
   bottom: calc(26px + env(safe-area-inset-bottom, 0px));
@@ -299,7 +357,7 @@ body {
 .world-list {
   display: flex;
   flex-direction: column;
-  gap: clamp(90px, 14vw, 170px);
+  gap: clamp(72px, 10vw, 130px);
 }
 
 .world {
