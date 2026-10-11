@@ -702,6 +702,24 @@ function deskPreview(canvas) {
   return { layout, frame };
 }
 
+/** The real snow globe; moving the pointer over it sloshes the water. */
+function snowglobePreview(canvas) {
+  const globe = new SnowGlobeWorld(canvas, { preview: true });
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, globe.ctx);
+    globe.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    globe.stir(pointer ? pointer.x : null, pointer ? pointer.y : null);
+    globe.update(dt);
+    globe.draw();
+  };
+
+  return { layout, frame };
+}
+
 const PREVIEWS = {
   aquarium: aquariumPreview,
   cat: catPreview,
@@ -710,7 +728,8 @@ const PREVIEWS = {
   meadow: meadowPreview,
   train: trainPreview,
   greenhouse: greenhousePreview,
-  desk: deskPreview
+  desk: deskPreview,
+  snowglobe: snowglobePreview
 };
 
 // ==========================================

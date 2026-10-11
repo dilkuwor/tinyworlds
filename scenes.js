@@ -75,6 +75,16 @@ const TINY_WORLDS = [
     preview: 'greenhouse'
   },
   {
+    slug: 'snowglobe',
+    title: 'The Snow Globe',
+    icon: '❄️',
+    lede: 'A glass globe on a wooden music box, with a little snowy village inside. Shake it, wind the key, and watch the snow settle on the cottage roof while the toy train goes round.',
+    actions: ['Shake it', 'Wind the music box', 'Tap the cottage lights'],
+    cta: 'Pick it up',
+    accent: '170, 205, 240',
+    preview: 'snowglobe'
+  },
+  {
     slug: 'desk',
     title: 'The Desk',
     icon: '🕯️',

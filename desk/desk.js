@@ -7,6 +7,7 @@
  *   the jar of fireflies → Night Meadow      the sleeping cat → Ragdoll Cat
  *   the carved bird → The Feeder             the train ticket → Night Train
  *   the basil pot → The Greenhouse (it droops when your greenhouse is thirsty)
+ *   the snow globe on the shelf → The Snow Globe (hover it and the snow stirs)
  *
  * Objects lift when you hover them and wobble when you brush past. The desk
  * lamp switches on and off; in the dark the window, tank and jar light the room.
@@ -25,7 +26,8 @@ const DESK_ITEMS = [
   { id: 'bird', slug: 'feeder', label: 'The Feeder', icon: '🐦' },
   { id: 'cat', slug: 'cat', label: 'Ragdoll Cat', icon: '🐈' },
   { id: 'plant', slug: 'greenhouse', label: 'The Greenhouse', icon: '🪴' },
-  { id: 'ticket', slug: 'train', label: 'Night Train', icon: '🚆' }
+  { id: 'ticket', slug: 'train', label: 'Night Train', icon: '🚆' },
+  { id: 'globe', slug: 'snowglobe', label: 'The Snow Globe', icon: '❄️' }
 ];
 
 class DeskWorld {
@@ -41,6 +43,7 @@ class DeskWorld {
     this.items = DESK_ITEMS.map(d => ({ ...d, lift: 0, wob: 0, wobVel: 0 }));
     this.raindrops = [];
     this.bubbles = [];
+    this.globeSnow = Array.from({ length: 16 }, () => ({ u: dkRand(-0.8, 0.8), v: dkRand(0.2, 0.55), vu: 0, vv: 0, settled: true }));
     this.greenhouseThirst = this.readGreenhouse();
     this.cat = typeof Cat === 'function' ? new Cat() : null;
     if (this.cat) {
@@ -83,6 +86,7 @@ class DeskWorld {
     place('cat', w * 0.55, D + 108 * S, 74 * S, 70 * S);
     place('plant', w * 0.7, D + 50 * S, 40 * S, 100 * S);
     place('ticket', w * 0.66, D + 128 * S, 60 * S, 24 * S);
+    place('globe', w * 0.48 + 146 * S, h * 0.34, 18 * S, 40 * S);
 
     // City through the window
     this.city = [];
@@ -116,7 +120,7 @@ class DeskWorld {
   // ---------- Interaction ----------
   itemAt(x, y) {
     // Front objects win over the window behind them
-    const order = ['ticket', 'cat', 'tank', 'plant', 'bird', 'jar', 'window'];
+    const order = ['ticket', 'cat', 'tank', 'plant', 'bird', 'jar', 'globe', 'window'];
     for (const id of order) {
       const it = this.items.find(i => i.id === id);
       if (x > it.x - it.hw && x < it.x + it.hw && y > it.y - it.hh && y < it.y + 8 * this.S) return it;
@@ -169,6 +173,21 @@ class DeskWorld {
       d.y += d.v * dt;
     }
     this.raindrops = this.raindrops.filter(d => d.y < W.y + W.h - 4);
+    // Snow in the little globe: stirred when you hover or brush it
+    const globe = this.items.find(i => i.id === 'globe');
+    const stir = (globe === this.hovered && !this.globeStirred) || Math.abs(globe.wobVel) > 0.4;
+    this.globeStirred = globe === this.hovered;
+    for (const f of this.globeSnow) {
+      if (stir) { f.settled = false; f.vu = dkRand(-0.8, 0.8); f.vv = dkRand(-1.6, -0.6); }
+      if (f.settled) continue;
+      f.vu *= Math.exp(-dt * 2.5);
+      f.vv += (0.12 - f.vv) * Math.min(1, dt * 2.5);
+      f.u += (f.vu + Math.sin(this.t * 2 + f.v * 9) * 0.05) * dt;
+      f.v += f.vv * dt;
+      const r = Math.hypot(f.u, f.v);
+      if (r > 0.9) { f.u *= 0.9 / r; f.v *= 0.9 / r; }
+      if (f.v > 0.45) { f.v = dkRand(0.42, 0.5); f.settled = true; }
+    }
     // Fish and bubbles
     this.fish.forEach(f => f.update([], this.frame, () => {}));
     const tank = this.items.find(i => i.id === 'tank');
@@ -414,6 +433,65 @@ class DeskWorld {
       c.fillRect(-hw + 5 * S, -h + 10 * S, 4 * S, h - 24 * S);
       c.fillStyle = '#9a8a6a';
       c.fillRect(-hw - 3 * S, -h - 9 * S, hw * 2 + 6 * S, 10 * S);
+    });
+  }
+
+  /** A small snow globe on the shelf: glass, a cottage, and snow that stirs when you hover. */
+  drawGlobe(c, it) {
+    const S = this.S, r = 17 * S, cy = -it.hh + r + 2 * S;
+    this.withItem(c, it, () => {
+      this.shadow(c, 14 * S, 0.8);
+      // Wooden base and brass band
+      c.fillStyle = '#6b4329';
+      c.beginPath();
+      c.moveTo(-12 * S, cy + r * 0.75);
+      c.lineTo(12 * S, cy + r * 0.75);
+      c.lineTo(15 * S, 0);
+      c.lineTo(-15 * S, 0);
+      c.closePath();
+      c.fill();
+      c.fillStyle = '#d9b562';
+      c.fillRect(-12 * S, cy + r * 0.72, 24 * S, 2.5 * S);
+      // Inside: night sky, snowy ground, a lit cottage
+      c.save();
+      c.beginPath();
+      c.arc(0, cy, r, 0, DK_TAU);
+      c.clip();
+      const sky = c.createLinearGradient(0, cy - r, 0, cy + r);
+      sky.addColorStop(0, '#13204a');
+      sky.addColorStop(1, '#3a4f86');
+      c.fillStyle = sky;
+      c.fillRect(-r, cy - r, r * 2, r * 2);
+      c.fillStyle = '#dfe8f6';
+      c.beginPath();
+      c.ellipse(0, cy + r * 0.62, r * 1.1, r * 0.3, 0, 0, DK_TAU);
+      c.fillRect(-r, cy + r * 0.62, r * 2, r);
+      c.fill();
+      c.fillStyle = '#8a5a44';
+      c.fillRect(-4 * S, cy + r * 0.2, 8 * S, 6 * S);
+      c.fillStyle = '#f2f6fc';
+      c.beginPath();
+      c.moveTo(-5.5 * S, cy + r * 0.22);
+      c.lineTo(0, cy - r * 0.08);
+      c.lineTo(5.5 * S, cy + r * 0.22);
+      c.fill();
+      c.fillStyle = '#ffd27a';
+      c.fillRect(0.5 * S, cy + r * 0.3, 2.2 * S, 2.2 * S);
+      c.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      for (const f of this.globeSnow) c.fillRect(f.u * r, cy + f.v * r, 1.3 * S, 1.3 * S);
+      c.restore();
+      // Glass
+      const glass = c.createRadialGradient(-r * 0.3, cy - r * 0.35, r * 0.1, 0, cy, r);
+      glass.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+      glass.addColorStop(0.5, 'rgba(255, 255, 255, 0.04)');
+      glass.addColorStop(1, 'rgba(180, 210, 255, 0.25)');
+      c.fillStyle = glass;
+      c.beginPath();
+      c.arc(0, cy, r, 0, DK_TAU);
+      c.fill();
+      c.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      c.lineWidth = 1;
+      c.stroke();
     });
   }
 
@@ -672,6 +750,7 @@ class DeskWorld {
     const byId = (id) => this.items.find(i => i.id === id);
     this.drawRoom(c);
     this.drawWindow(c, byId('window'));
+    this.drawGlobe(c, byId('globe'));
     this.drawJar(c, byId('jar'));
     this.drawBird(c, byId('bird'));
     this.drawPlant(c, byId('plant'));

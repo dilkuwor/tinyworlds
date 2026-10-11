@@ -13,6 +13,8 @@ creature, room and sound is drawn or synthesised in code.
 | Night Meadow | `/meadow/` | Hold still to gather fireflies, call them with a lantern, wait for synchrony |
 | Night Train | `/train/` | Watch countryside, coast, snow, and city roll by, sound the horn, toggle reflection |
 | The Greenhouse | `/greenhouse/` | Aim the watering can and watch thirsty plants lift; mist the leaves; plants grow only while moist, across real days, and tell you what grew while you were away |
+| The Snow Globe | `/snowglobe/` | Drag or shake (on a phone, really shake) to swirl the snow, then watch it settle on the roofs; wind the music box and the toy train runs until it winds down; the sky follows your local time |
+| The Desk | `/desk/` | A desk at night where every object is a doorway into another world; hover to see where it leads, switch off the lamp |
 
 ## Running locally
 

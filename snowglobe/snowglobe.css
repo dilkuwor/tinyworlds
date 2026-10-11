@@ -1,0 +1,37 @@
+/* The Snow Globe: cool winter light on the shared glass UI */
+:root {
+  --primary-color: #aacdf0;
+  --primary-glow: rgba(170, 205, 240, 0.4);
+  --accent-rgb: 170, 205, 240;
+  --accent2-rgb: 241, 213, 138;
+  --bg-glass: rgba(26, 24, 38, 0.64);
+  --bg-glass-soft: rgba(26, 24, 38, 0.38);
+  --text-main: #f2f4fa;
+  --text-muted: #c4c8d8;
+}
+
+html, body {
+  background-color: #16131f;
+}
+
+#world {
+  cursor: default;
+  touch-action: none;
+}
+
+#world.grab {
+  cursor: grab;
+}
+
+#world.grabbing {
+  cursor: grabbing;
+}
+
+#world.pointing {
+  cursor: pointer;
+}
+
+.active-tool {
+  background: rgba(var(--accent-rgb), 0.28);
+  border-color: rgba(var(--accent-rgb), 0.55);
+}
