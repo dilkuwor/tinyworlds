@@ -219,6 +219,176 @@ function startHero() {
     ctx.fill();
   };
 
+  // A peacock who strolls the cottage's hill, and now and then stops to dance
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const pea = { x: 0, dir: Math.random() < 0.5 ? -1 : 1, face: 1, mode: 'walk', timer: rnd(3, 7), phase: 0, raise: 0, bend: 0, clock: 0, turnAt: 0 };
+  pea.face = pea.dir;
+
+  const stepPeacock = (dt) => {
+    const lo = w * 0.05, hi = w * 0.95, speed = 20 * Math.max(0.7, Math.min(1.4, w / 1200));
+    pea.timer -= dt;
+    pea.clock += dt;
+    if (pea.mode === 'walk') {
+      pea.x += pea.dir * speed * dt;
+      pea.phase += dt * 6;
+      if ((pea.x < lo && pea.dir < 0) || (pea.x > hi && pea.dir > 0)) pea.dir = -pea.dir;
+      if (pea.timer <= 0) {
+        const r = Math.random();
+        pea.clock = 0;
+        if (r < 0.45) { pea.mode = 'dance'; pea.timer = rnd(6, 10); pea.turnAt = rnd(1.8, 3); }
+        else if (r < 0.75) { pea.mode = 'peck'; pea.timer = rnd(2, 4); }
+        else { pea.dir = -pea.dir; pea.timer = rnd(3, 7); }
+      }
+    } else {
+      if (pea.mode === 'dance') {
+        // Shuffle in place, turning now and then to show off the fan
+        pea.phase += dt * 2.5;
+        if (pea.clock > pea.turnAt) { pea.dir = -pea.dir; pea.turnAt = pea.clock + rnd(1.6, 3); }
+      }
+      if (pea.timer <= 0) {
+        pea.mode = 'walk';
+        pea.timer = rnd(4, 9);
+        if (Math.random() < 0.5) pea.dir = -pea.dir;
+      }
+    }
+    pea.raise += ((pea.mode === 'dance' ? 1 : 0) - pea.raise) * Math.min(1, dt * 1.6);
+    const peck = pea.mode === 'peck' && Math.sin(pea.clock * 2.6) > 0.35 ? 1 : 0;
+    pea.bend += (peck - pea.bend) * Math.min(1, dt * 7);
+    pea.face += (pea.dir - pea.face) * Math.min(1, dt * 4);
+  };
+
+  const drawPeacock = (gy, s, u) => {
+    const x = pea.x, y = gy(x);
+    const lit = 0.3 + 0.7 * u;
+    const c = (hex) => mixHex('#1d1946', hex, lit);
+    const k = s * 1.15, up = pea.raise;
+    const walking = pea.mode === 'walk' ? 1 : pea.mode === 'dance' ? 0.45 : 0;
+    const bob = -Math.abs(Math.sin(pea.phase)) * 0.7 * walking;
+    const face = Math.sign(pea.face || 1) * Math.max(0.14, Math.abs(pea.face));
+
+    ctx.save();
+    ctx.translate(x, y + 1);
+    ctx.rotate(Math.atan((gy(x + 4) - gy(x - 4)) / 8) * 0.7);
+    ctx.scale(k * face, k);
+
+    // Soft shadow on the grass
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.beginPath();
+    ctx.ellipse(-3, 0, 9 + up * 12, 1.4, 0, 0, 6.283);
+    ctx.fill();
+
+    ctx.save();
+    ctx.rotate(up * Math.sin(t * 2.4) * 0.05);
+
+    // The train: a long trail of eyespot feathers that rises into a fan
+    const cx = -5, cy = -13 + bob, N = 24;
+    if (up > 0.05) {
+      ctx.globalAlpha = up;
+      ctx.fillStyle = c('#2a6e46');
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, 30 * up, Math.PI * 1.08, Math.PI * 1.92);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    // Long feathers first, then a shorter inner ring on top: two rows of eyes
+    const order = [...Array(N).keys()].sort((p, q) => (p % 2) - (q % 2));
+    for (const i of order) {
+      const f = i / (N - 1);
+      const trail = Math.PI * (0.95 + f * 0.05);
+      const fan = Math.PI * (1.08 + 0.84 * f);
+      const a = trail + (fan - trail) * up + Math.sin(t * 30 + i * 1.7) * 0.014 * up;
+      const len = (14 + ((i * 7) % N) / N * 20) * (1 - up) + (34 + Math.cos((f - 0.5) * Math.PI) * 6) * (i % 2 ? 0.72 : 1) * up;
+      const ca = Math.cos(a), sa = Math.sin(a);
+      ctx.strokeStyle = c('#3f7f4a');
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + ca * len, cy + sa * len);
+      ctx.stroke();
+      ctx.fillStyle = c('#2f8a55');
+      ctx.beginPath();
+      ctx.ellipse(cx + ca * len * 0.7, cy + sa * len * 0.7, len * 0.3, 2 + up * 1.6, a, 0, 6.283);
+      ctx.fill();
+      const ex = cx + ca * len * 0.9, ey = cy + sa * len * 0.9;
+      [['#c9a43a', 3.2, 2.4], ['#1f9e8e', 2.4, 1.8], ['#1b3f9a', 1.4, 1.1], ['#0b1430', 0.6, 0.6]].forEach(([col, rx, ry]) => {
+        ctx.fillStyle = c(col);
+        ctx.beginPath();
+        ctx.ellipse(ex, ey, rx, ry, a, 0, 6.283);
+        ctx.fill();
+      });
+    }
+
+    // Legs, stepping as he walks
+    ctx.strokeStyle = c('#8d7b68');
+    ctx.lineWidth = 1.1;
+    ctx.lineCap = 'round';
+    for (let j = 0; j < 2; j++) {
+      const ph = pea.phase + j * Math.PI;
+      const fx = -1 + Math.sin(ph) * 3.2 * walking;
+      const lift = Math.max(0, Math.cos(ph)) * 1.8 * walking;
+      ctx.beginPath();
+      ctx.moveTo(-1, -9 + bob);
+      ctx.lineTo((fx - 1) * 0.5, -4.5 - lift * 0.5);
+      ctx.lineTo(fx, -lift);
+      ctx.stroke();
+    }
+
+    // Body and folded wing
+    ctx.fillStyle = c('#1d4fb0');
+    ctx.beginPath();
+    ctx.ellipse(-1, -13 + bob, 8, 5.2, -0.2, 0, 6.283);
+    ctx.fill();
+    ctx.fillStyle = c('#b39064');
+    ctx.beginPath();
+    ctx.ellipse(-3, -12.5 + bob, 5.5, 3.2, -0.15, 0, 6.283);
+    ctx.fill();
+
+    // Neck and head; bobbing on the walk, dipping to peck
+    const hx = 7 + (12 - 7) * pea.bend - up * 1 + Math.sin(pea.phase * 2) * 0.8 * walking;
+    const hy = -27 + (-5 + 27) * pea.bend + bob;
+    ctx.strokeStyle = c('#2a6fd6');
+    ctx.lineWidth = 3.4;
+    ctx.beginPath();
+    ctx.moveTo(3, -15 + bob);
+    ctx.quadraticCurveTo(6 + pea.bend * 4, -19 + bob + pea.bend * 10, hx, hy);
+    ctx.stroke();
+    ctx.fillStyle = c('#2a6fd6');
+    ctx.beginPath();
+    ctx.arc(hx, hy, 2.2, 0, 6.283);
+    ctx.fill();
+    ctx.lineWidth = 0.5;
+    for (let j = 0; j < 4; j++) {
+      const ca = -Math.PI / 2 - 0.5 + j * 0.22;
+      const ex = hx - 0.5 + Math.cos(ca) * 4.5, ey = hy - 1.5 + Math.sin(ca) * 4.5;
+      ctx.beginPath();
+      ctx.moveTo(hx - 0.3, hy - 1.8);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(ex, ey, 0.7, 0, 6.283);
+      ctx.fill();
+    }
+    ctx.fillStyle = c('#cbb68f');
+    ctx.beginPath();
+    ctx.moveTo(hx + 1.8, hy - 0.6);
+    ctx.lineTo(hx + 4.3, hy + 0.2);
+    ctx.lineTo(hx + 1.8, hy + 0.8);
+    ctx.fill();
+    ctx.fillStyle = c('#f2f2f2');
+    ctx.beginPath();
+    ctx.ellipse(hx + 0.6, hy - 0.3, 1.1, 0.45, 0, 0, 6.283);
+    ctx.fill();
+    ctx.fillStyle = '#0b0a14';
+    ctx.beginPath();
+    ctx.arc(hx + 0.8, hy - 0.3, 0.4, 0, 6.283);
+    ctx.fill();
+
+    ctx.restore();
+    ctx.restore();
+  };
+
   const draw = () => {
     const u = day, n = 1 - day;
 
@@ -348,6 +518,8 @@ function startHero() {
           ctx.lineTo(tx + th * 0.32, ty + 2);
           ctx.fill();
         });
+
+        drawPeacock(x => hillY(x, base, Ly.amp, Ly.freq, Ly.seed, off), s, u);
       }
     });
 
@@ -378,7 +550,9 @@ function startHero() {
   };
 
   layout();
-  window.addEventListener('resize', layout);
+  pea.x = w * rnd(0.12, 0.88);
+  if (reduceMotion) pea.raise = 1;
+  window.addEventListener('resize', () => { layout(); pea.x = Math.max(w * 0.05, Math.min(w * 0.95, pea.x)); });
   window.addEventListener('pointermove', (e) => {
     par.tx = (e.clientX / window.innerWidth - 0.5) * 2;
     par.ty = (e.clientY / window.innerHeight - 0.5) * 2;
@@ -409,6 +583,7 @@ function startHero() {
     t += dt;
     par.x += (par.tx - par.x) * Math.min(1, dt * 2);
     par.y += (par.ty - par.y) * Math.min(1, dt * 2);
+    stepPeacock(dt);
     draw();
   });
 }
