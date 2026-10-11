@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>The Shoreline · Tiny Worlds</title>
+  <meta name="theme-color" content="#0d5876">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
+  <link rel="stylesheet" href="/shared/ui.css">
+  <link rel="stylesheet" href="/shoreline/shoreline.css">
+</head>
+<body>
+  <div id="world">
+    <canvas id="shore-canvas"></canvas>
+
+    <!-- Top Navigation & Status -->
+    <header class="top-nav ui-chrome">
+      <a class="brand glass-panel" href="/" title="Back to Tiny Worlds">
+        <span class="brand-home" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </span>
+        <span class="brand-icon">🌊</span>
+        <span class="brand-title">The Shoreline</span>
+      </a>
+
+      <div class="stats-bar glass-panel">
+        <div class="stat-item" title="Shells you've collected">
+          <span class="stat-icon">🐚</span>
+          <span id="stat-shells" class="stat-value">0</span>
+        </div>
+        <div class="stat-item" title="The tide, from your local time">
+          <span class="stat-icon">🌙</span>
+          <span id="stat-tide" class="stat-value">--</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Interaction Hint (fades out after a few seconds) -->
+    <div id="hint-banner" class="hint-banner glass-panel">
+      <span class="hint-long">Draw in the sand • Write a word and let the sea take it • Tap shells to keep them • <kbd>W</kbd> Write • <kbd>Space</kbd> Big wave • <kbd>M</kbd> Sound</span>
+      <span class="hint-short">Draw in the sand with your finger</span>
+    </div>
+
+    <!-- Write a word in the sand -->
+    <form id="write-panel" class="write-panel glass-panel" autocomplete="off">
+      <input id="write-input" type="text" maxlength="40" placeholder="Write something in the sand…" aria-label="Words to write in the sand">
+      <button type="submit">Write</button>
+    </form>
+
+    <!-- Bottom Controls Toolbar -->
+    <div id="toolbar-container" class="toolbar-container ui-chrome">
+      <div class="toolbar glass-panel">
+        <button id="btn-write" class="btn" title="Write a word in the sand (W)">
+          <span class="btn-icon">✍️</span>
+          <span class="btn-label">Write</span>
+        </button>
+
+        <button id="btn-wave" class="btn" title="Call a big wave (Space)">
+          <span class="btn-icon">🌊</span>
+          <span class="btn-label">Big wave</span>
+        </button>
+
+        <button id="btn-sound" class="btn" title="Surf, gulls and sand (M)">
+          <span id="sound-icon" class="btn-icon">🔇</span>
+          <span id="sound-label" class="btn-label">Off</span>
+        </button>
+
+        <button id="btn-help" class="btn" title="Guide (?)">
+          <span class="btn-icon">ℹ️</span>
+          <span class="btn-label">Guide</span>
+        </button>
+
+        <div class="separator"></div>
+
+        <button id="btn-collapse" class="btn btn-ghost" title="Hide toolbar (T)" aria-label="Hide toolbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Small handle shown while the toolbar is collapsed -->
+    <button id="toolbar-handle" class="toolbar-handle glass-panel" title="Show toolbar (T)" aria-label="Show toolbar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+    </button>
+
+    <!-- Guide Modal -->
+    <div id="help-modal" class="modal-overlay">
+      <div class="modal glass-panel">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span>🌊</span> The Shoreline
+          </div>
+          <button id="btn-close-help" class="btn-close" title="Close guide">&times;</button>
+        </div>
+        <div class="modal-content">
+          <p>
+            A quiet beach seen from above. Waves wash up the sand and slide back. Draw or write something
+            near the water, and watch the next wave soften it and the one after take it away.
+          </p>
+          <div>
+            <strong>Things to try</strong>
+            <div class="species-grid">
+              <div class="species-card"><strong>✍️ Draw</strong>Drag across the sand with your finger or mouse.</div>
+              <div class="species-card"><strong>💬 Write</strong>Type a word and it's written by the water's edge.</div>
+              <div class="species-card"><strong>🐚 Shells</strong>Waves leave them behind. Tap one to keep it.</div>
+              <div class="species-card"><strong>🦀 The crab</strong>It wanders the wet sand, runs from your hand, and digs in when the water comes.</div>
+              <div class="species-card"><strong>🌊 Big wave</strong>Every few waves one reaches further. You can also call one.</div>
+              <div class="species-card"><strong>🌙 Tide and time</strong>The light follows your clock, and the tide rises and falls through the day.</div>
+            </div>
+          </div>
+          <div>
+            <strong>Keyboard Shortcuts</strong>
+            <table class="shortcuts-table">
+              <tbody>
+                <tr><td><kbd>W</kbd></td><td>Write a word</td></tr>
+                <tr><td><kbd>Space</kbd></td><td>Call a big wave</td></tr>
+                <tr><td><kbd>M</kbd></td><td>Toggle sound</td></tr>
+                <tr><td><kbd>T</kbd></td><td>Show / hide the toolbar</td></tr>
+                <tr><td><kbd>F</kbd></td><td>Fullscreen</td></tr>
+                <tr><td><kbd>?</kbd> / <kbd>H</kbd></td><td>Guide</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/shared/canvas.js"></script>
+  <script src="/shared/audio.js"></script>
+  <script src="/shared/shell.js"></script>
+  <script src="/shoreline/sounds.js"></script>
+  <script src="/shoreline/beach.js"></script>
+  <script src="/shoreline/scene.js"></script>
+</body>
+</html>

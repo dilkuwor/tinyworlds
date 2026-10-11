@@ -720,6 +720,24 @@ function snowglobePreview(canvas) {
   return { layout, frame };
 }
 
+/** The real beach; moving the pointer over the sand draws a light trail. */
+function shorelinePreview(canvas) {
+  const beach = new ShorelineWorld(canvas, { preview: true });
+
+  const layout = () => {
+    const { width, height, dpr } = fitCanvas(canvas, beach.ctx);
+    beach.resize(width, height, dpr);
+  };
+
+  const frame = (pointer, dt) => {
+    beach.trace(pointer ? pointer.x : null, pointer ? pointer.y : null);
+    beach.update(dt);
+    beach.draw();
+  };
+
+  return { layout, frame };
+}
+
 const PREVIEWS = {
   aquarium: aquariumPreview,
   cat: catPreview,
@@ -729,7 +747,8 @@ const PREVIEWS = {
   train: trainPreview,
   greenhouse: greenhousePreview,
   desk: deskPreview,
-  snowglobe: snowglobePreview
+  snowglobe: snowglobePreview,
+  shoreline: shorelinePreview
 };
 
 // ==========================================

@@ -1,0 +1,86 @@
+/* The Shoreline: sea-glass accent on the shared glass UI */
+:root {
+  --primary-color: #7fd6cc;
+  --primary-glow: rgba(127, 214, 204, 0.4);
+  --accent-rgb: 127, 214, 204;
+  --accent2-rgb: 233, 213, 171;
+  --bg-glass: rgba(18, 44, 56, 0.6);
+  --bg-glass-soft: rgba(18, 44, 56, 0.36);
+  --text-main: #f4fbfa;
+  --text-muted: #cfe3e0;
+}
+
+html, body {
+  background-color: #e2c99a;
+}
+
+#world {
+  cursor: crosshair;
+  touch-action: none;
+}
+
+#world.drawing {
+  cursor: crosshair;
+}
+
+#world.pointing {
+  cursor: pointer;
+}
+
+.active-tool {
+  background: rgba(var(--accent-rgb), 0.28);
+  border-color: rgba(var(--accent-rgb), 0.55);
+}
+
+/* The little form for writing a word in the sand */
+.write-panel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  transform: translate(-50%, 12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.write-panel.open {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.write-panel input {
+  width: min(56vw, 260px);
+  padding: 8px 14px;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.write-panel input::placeholder {
+  color: var(--text-muted);
+}
+
+.write-panel input:focus {
+  border-color: rgba(var(--accent-rgb), 0.75);
+}
+
+.write-panel button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.85);
+  color: #0e2a33;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

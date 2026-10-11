@@ -85,6 +85,16 @@ const TINY_WORLDS = [
     preview: 'snowglobe'
   },
   {
+    slug: 'shoreline',
+    title: 'The Shoreline',
+    icon: '🌊',
+    lede: 'A quiet beach seen from above. Write something near the water and watch the next wave soften it and the one after take it away. Waves leave shells behind, and a small crab minds its own business.',
+    actions: ['Write in the sand', 'Collect shells', 'Call a big wave'],
+    cta: 'Walk down',
+    accent: '127, 214, 204',
+    preview: 'shoreline'
+  },
+  {
     slug: 'desk',
     title: 'The Desk',
     icon: '🕯️',
